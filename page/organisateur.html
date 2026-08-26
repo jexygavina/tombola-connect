@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tombola Connect — Espace organisateur</title>
+<link rel="stylesheet" href="../assets/tombola.css" />
+</head>
+<body>
+<div class="page">
+  <header class="entete">
+    <h1>Espace organisateur</h1>
+    <p><a href="index.html">&larr; Retour à l'accueil</a></p>
+  </header>
+
+  <!-- Connexion -->
+  <div class="carte" id="carte-connexion">
+    <h2>Connexion</h2>
+    <p class="discret">Pas de mot de passe à retenir : indiquez votre e-mail, vous recevrez un lien de connexion valable quelques minutes.</p>
+    <label for="champ-email">Adresse e-mail</label>
+    <input type="email" id="champ-email" placeholder="vous@exemple.fr" autocomplete="email" />
+    <button type="button" id="bouton-envoyer-lien">Recevoir le lien de connexion</button>
+    <div id="message-connexion" class="message" hidden></div>
+  </div>
+
+  <!-- Contenu réservé aux organisateurs connectés -->
+  <div id="zone-connectee" hidden>
+    <div class="carte">
+      <div class="barre-actions" style="justify-content:space-between">
+        <span id="texte-bienvenue"></span>
+        <button type="button" class="secondaire" id="bouton-deconnexion">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="carte">
+      <h2>Créer un nouveau carnet</h2>
+      <label for="nouveau-nom">Nom de la tombola</label>
+      <input type="text" id="nouveau-nom" placeholder="Ex : Tombola de la kermesse 2026" />
+      <label for="nouvelle-description">Description (facultatif)</label>
+      <textarea id="nouvelle-description" placeholder="Quelques mots sur votre tombola…"></textarea>
+      <label for="nouvelle-date">Date et heure du tirage (facultatif)</label>
+      <input type="datetime-local" id="nouvelle-date" />
+      <button type="button" id="bouton-creer-carnet">Créer le carnet</button>
+      <div id="message-creation" class="message" hidden></div>
+    </div>
+
+    <div class="carte">
+      <h2>Mes carnets</h2>
+      <p id="message-pas-de-carnets" class="discret" hidden>Vous n'avez pas encore créé de carnet.</p>
+      <ul class="liste-lots" id="liste-carnets"></ul>
+    </div>
+
+    <!-- Détail d'un carnet sélectionné -->
+    <div id="zone-detail-carnet" hidden>
+      <div class="carte">
+        <h2 id="titre-detail-carnet"></h2>
+        <p class="discret">Lien à partager avec les acheteurs de billets :</p>
+        <p><a id="lien-public-carnet" href="#" target="_blank"></a></p>
+      </div>
+
+      <div class="carte">
+        <h2>Lots à gagner</h2>
+        <ul class="liste-lots" id="liste-lots-organisateur"></ul>
+        <label for="nouveau-lot-nom">Ajouter un lot</label>
+        <input type="text" id="nouveau-lot-nom" placeholder="Ex : Un panier garni" />
+        <button type="button" id="bouton-ajouter-lot">Ajouter ce lot</button>
+        <div id="message-lot" class="message" hidden></div>
+      </div>
+
+      <div class="carte">
+        <h2>Billets enregistrés</h2>
+        <p class="discret"><span id="nombre-billets">0</span> billet(s) enregistré(s) pour ce carnet.</p>
+
+        <label for="plage-prefixe">Enregistrer une plage de billets</label>
+        <div class="barre-actions">
+          <input type="text" id="plage-prefixe" placeholder="Préfixe (ex: A-)" style="max-width:120px" />
+          <input type="number" id="plage-debut" placeholder="Numéro de début" style="max-width:160px" />
+          <input type="number" id="plage-fin" placeholder="Numéro de fin" style="max-width:160px" />
+        </div>
+        <button type="button" id="bouton-enregistrer-plage">Enregistrer cette plage</button>
+
+        <label for="liste-codes-collee">Ou coller une liste de codes (un par ligne)</label>
+        <textarea id="liste-codes-collee" placeholder="A-00001&#10;A-00002&#10;A-00003…"></textarea>
+        <button type="button" id="bouton-enregistrer-liste">Enregistrer cette liste</button>
+
+        <div id="message-billets" class="message" hidden></div>
+      </div>
+
+      <div class="carte">
+        <h2>Tirage au sort</h2>
+        <p class="discret">Le jour du tirage, appuyez sur « Tirer ce lot » lot par lot. Un billet ne peut jamais gagner deux fois sur le même carnet.</p>
+        <ul class="liste-lots" id="liste-tirage"></ul>
+        <div id="message-tirage" class="message" hidden></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/tombola.js"></script>
+<script>
+  const carteConnexion = document.getElementById("carte-connexion");
+  const zoneConnectee = document.getElementById("zone-connectee");
+  const champEmail = document.getElementById("champ-email");
+  const boutonEnvoyerLien = document.getElementById("bouton-envoyer-lien");
+  const messageConnexion = document.getElementById("message-connexion");
+  const texteBienvenue = document.getElementById("texte-bienvenue");
+  const boutonDeconnexion = document.getElementById("bouton-deconnexion");
+
+  const nouveauNom = document.getElementById("nouveau-nom");
+  const nouvelleDescription = document.getElementById("nouvelle-description");
+  const nouvelleDate = document.getElementById("nouvelle-date");
+  const boutonCreerCarnet = document.getElementById("bouton-creer-carnet");
+  const messageCreation = document.getElementById("message-creation");
+
+  const listeCarnets = document.getElementById("liste-carnets");
+  const messagePasDeCarnets = document.getElementById("message-pas-de-carnets");
+
+  const zoneDetailCarnet = document.getElementById("zone-detail-carnet");
+  const titreDetailCarnet = document.getElementById("titre-detail-carnet");
+  const lienPublicCarnet = document.getElementById("lien-public-carnet");
+
+  const listeLotsOrganisateur = document.getElementById("liste-lots-organisateur");
+  const nouveauLotNom = document.getElementById("nouveau-lot-nom");
+  const boutonAjouterLot = document.getElementById("bouton-ajouter-lot");
+  const messageLot = document.getElementById("message-lot");
+
+  const nombreBillets = document.getElementById("nombre-billets");
+  const plagePrefixe = document.getElementById("plage-prefixe");
+  const plageDebut = document.getElementById("plage-debut");
+  const plageFin = document.getElementById("plage-fin");
+  const boutonEnregistrerPlage = document.getElementById("bouton-enregistrer-plage");
+  const listeCodesCollee = document.getElementById("liste-codes-collee");
+  const boutonEnregistrerListe = document.getElementById("bouton-enregistrer-liste");
+  const messageBillets = document.getElementById("message-billets");
+
+  const listeTirage = document.getElementById("liste-tirage");
+  const messageTirage = document.getElementById("message-tirage");
+
+  let utilisateurCourant = null;
+  let carnetSelectionneId = null;
+
+  // ---------------------------------------------------------------------
+  // Connexion / déconnexion
+  // ---------------------------------------------------------------------
+
+  boutonEnvoyerLien.addEventListener("click", async () => {
+    const email = champEmail.value.trim();
+    if (!email) {
+      afficherMessage(messageConnexion, "Indiquez votre adresse e-mail.", "erreur");
+      return;
+    }
+    boutonEnvoyerLien.disabled = true;
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    boutonEnvoyerLien.disabled = false;
+
+    if (error) {
+      afficherMessage(messageConnexion, "Impossible d'envoyer le lien, réessayez.", "erreur");
+    } else {
+      afficherMessage(messageConnexion, "E-mail envoyé ! Cliquez sur le lien reçu pour vous connecter.", "succes");
+    }
+  });
+
+  boutonDeconnexion.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+  });
+
+  supabaseClient.auth.onAuthStateChange((_evenement, session) => {
+    utilisateurCourant = session ? session.user : null;
+    if (utilisateurCourant) {
+      carteConnexion.hidden = true;
+      zoneConnectee.hidden = false;
+      texteBienvenue.textContent = "Connecté en tant que " + utilisateurCourant.email;
+      chargerMesCarnets();
+    } else {
+      carteConnexion.hidden = false;
+      zoneConnectee.hidden = true;
+      zoneDetailCarnet.hidden = true;
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // Création et liste des carnets
+  // ---------------------------------------------------------------------
+
+  boutonCreerCarnet.addEventListener("click", async () => {
+    const nom = nouveauNom.value.trim();
+    if (!nom) {
+      afficherMessage(messageCreation, "Donnez un nom à votre tombola.", "erreur");
+      return;
+    }
+
+    boutonCreerCarnet.disabled = true;
+    const { data, error } = await supabaseClient
+      .from("carnets")
+      .insert({
+        organisateur_id: utilisateurCourant.id,
+        nom,
+        description: nouvelleDescription.value.trim() || null,
+        date_tirage: nouvelleDate.value ? new Date(nouvelleDate.value).toISOString() : null,
+      })
+      .select()
+      .single();
+    boutonCreerCarnet.disabled = false;
+
+    if (error) {
+      afficherMessage(messageCreation, "Impossible de créer ce carnet, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageCreation, "Carnet créé !", "succes");
+    nouveauNom.value = "";
+    nouvelleDescription.value = "";
+    nouvelleDate.value = "";
+    await chargerMesCarnets();
+    ouvrirDetailCarnet(data.id, data.nom);
+  });
+
+  async function chargerMesCarnets() {
+    const { data, error } = await supabaseClient
+      .from("carnets")
+      .select("id, nom, date_tirage")
+      .eq("organisateur_id", utilisateurCourant.id)
+      .order("cree_le", { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      messagePasDeCarnets.hidden = false;
+      listeCarnets.innerHTML = "";
+      return;
+    }
+
+    messagePasDeCarnets.hidden = true;
+    listeCarnets.innerHTML = data
+      .map(
+        (carnet) => `<li>
+          <span class="lot-nom">${carnet.nom}<br><span class="discret">${formaterDate(carnet.date_tirage)}</span></span>
+          <button type="button" class="secondaire" data-carnet-id="${carnet.id}" data-carnet-nom="${carnet.nom}">Ouvrir</button>
+        </li>`
+      )
+      .join("");
+
+    listeCarnets.querySelectorAll("button[data-carnet-id]").forEach((bouton) => {
+      bouton.addEventListener("click", () =>
+        ouvrirDetailCarnet(bouton.dataset.carnetId, bouton.dataset.carnetNom)
+      );
+    });
+  }
+
+  // ---------------------------------------------------------------------
+  // Détail d'un carnet : lots, billets, tirage
+  // ---------------------------------------------------------------------
+
+  function ouvrirDetailCarnet(carnetId, nomCarnet) {
+    carnetSelectionneId = carnetId;
+    zoneDetailCarnet.hidden = false;
+    titreDetailCarnet.textContent = nomCarnet;
+
+    const urlPublique = new URL("carnet.html", window.location.href);
+    urlPublique.searchParams.set("id", carnetId);
+    lienPublicCarnet.href = urlPublique.toString();
+    lienPublicCarnet.textContent = urlPublique.toString();
+
+    chargerLots();
+    chargerNombreBillets();
+    zoneDetailCarnet.scrollIntoView({ behavior: "smooth" });
+  }
+
+  async function chargerLots() {
+    const { data, error } = await supabaseClient
+      .from("lots")
+      .select("id, rang, nom, billet_gagnant_id")
+      .eq("carnet_id", carnetSelectionneId)
+      .order("rang");
+
+    if (error) return;
+
+    listeLotsOrganisateur.innerHTML = data.length
+      ? data
+          .map(
+            (lot) => `<li>
+              <span class="lot-rang">${lot.rang}</span>
+              <span class="lot-nom">${lot.nom}</span>
+            </li>`
+          )
+          .join("")
+      : '<li class="discret">Aucun lot ajouté pour l\'instant.</li>';
+
+    afficherListeTirage(data);
+  }
+
+  boutonAjouterLot.addEventListener("click", async () => {
+    const nom = nouveauLotNom.value.trim();
+    if (!nom) {
+      afficherMessage(messageLot, "Donnez un nom au lot.", "erreur");
+      return;
+    }
+
+    const { data: lotsExistants } = await supabaseClient
+      .from("lots")
+      .select("rang")
+      .eq("carnet_id", carnetSelectionneId)
+      .order("rang", { ascending: false })
+      .limit(1);
+
+    const prochainRang = lotsExistants && lotsExistants.length ? lotsExistants[0].rang + 1 : 1;
+
+    const { error } = await supabaseClient.from("lots").insert({
+      carnet_id: carnetSelectionneId,
+      rang: prochainRang,
+      nom,
+    });
+
+    if (error) {
+      afficherMessage(messageLot, "Impossible d'ajouter ce lot, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageLot, "Lot ajouté.", "succes");
+    nouveauLotNom.value = "";
+    chargerLots();
+  });
+
+  // ---------------------------------------------------------------------
+  // Enregistrement des billets déjà imprimés
+  // ---------------------------------------------------------------------
+
+  async function chargerNombreBillets() {
+    const { count } = await supabaseClient
+      .from("billets")
+      .select("id", { count: "exact", head: true })
+      .eq("carnet_id", carnetSelectionneId);
+    nombreBillets.textContent = count || 0;
+  }
+
+  async function enregistrerCodes(codes) {
+    if (codes.length === 0) {
+      afficherMessage(messageBillets, "Aucun code à enregistrer.", "erreur");
+      return;
+    }
+    const { data, error } = await supabaseClient.rpc("generer_billets", {
+      p_carnet_id: carnetSelectionneId,
+      p_codes: codes,
+    });
+
+    if (error) {
+      afficherMessage(messageBillets, "Impossible d'enregistrer ces billets, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageBillets, `${data} billet(s) enregistré(s) (les codes déjà connus ne sont pas dupliqués).`, "succes");
+    chargerNombreBillets();
+  }
+
+  boutonEnregistrerPlage.addEventListener("click", () => {
+    try {
+      const codes = construireCodesDepuisPlage(
+        plagePrefixe.value.trim(),
+        plageDebut.value,
+        plageFin.value
+      );
+      enregistrerCodes(codes);
+    } catch (erreur) {
+      afficherMessage(messageBillets, erreur.message, "erreur");
+    }
+  });
+
+  boutonEnregistrerListe.addEventListener("click", () => {
+    const codes = construireCodesDepuisListe(listeCodesCollee.value);
+    enregistrerCodes(codes);
+    listeCodesCollee.value = "";
+  });
+
+  // ---------------------------------------------------------------------
+  // Tirage au sort, lot par lot
+  // ---------------------------------------------------------------------
+
+  function afficherListeTirage(lots) {
+    if (!lots.length) {
+      listeTirage.innerHTML = '<li class="discret">Ajoutez d\'abord des lots pour pouvoir tirer au sort.</li>';
+      return;
+    }
+
+    listeTirage.innerHTML = lots
+      .map((lot) => {
+        const etat = lot.billet_gagnant_id
+          ? '<span class="lot-en-attente">déjà tiré</span>'
+          : `<button type="button" data-lot-id="${lot.id}">Tirer ce lot</button>`;
+        return `<li>
+          <span class="lot-rang">${lot.rang}</span>
+          <span class="lot-nom">${lot.nom}</span>
+          ${etat}
+        </li>`;
+      })
+      .join("");
+
+    listeTirage.querySelectorAll("button[data-lot-id]").forEach((bouton) => {
+      bouton.addEventListener("click", () => tirerCeLot(bouton.dataset.lotId, bouton));
+    });
+  }
+
+  async function tirerCeLot(lotId, bouton) {
+    bouton.disabled = true;
+    const { data, error } = await supabaseClient.rpc("effectuer_tirage", { p_lot_id: lotId });
+
+    if (error) {
+      afficherMessage(messageTirage, error.message || "Le tirage a échoué, réessayez.", "erreur");
+      bouton.disabled = false;
+      return;
+    }
+
+    const resultat = data && data[0];
+    afficherMessage(
+      messageTirage,
+      `Lot n°${resultat.rang} (${resultat.nom_lot}) : billet gagnant ${resultat.code_gagnant}`,
+      "succes"
+    );
+    chargerLots();
+  }
+</script>
+</body>
+</html>

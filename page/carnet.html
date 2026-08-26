@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tombola Connect — Carnet</title>
+<link rel="stylesheet" href="../assets/tombola.css" />
+</head>
+<body>
+<div class="page">
+  <header class="entete">
+    <h1 id="titre-carnet">Chargement…</h1>
+    <p id="sous-titre-carnet"></p>
+  </header>
+
+  <div class="carte" id="carte-description" hidden>
+    <p id="description-carnet"></p>
+  </div>
+
+  <div class="carte">
+    <h2>Lots à gagner</h2>
+    <p id="message-pas-de-lots" class="discret" hidden>Aucun lot n'a encore été ajouté par l'organisateur.</p>
+    <ul class="liste-lots" id="liste-lots"></ul>
+  </div>
+
+  <div class="carte">
+    <h2>Vérifier mon billet</h2>
+    <p class="discret">Aucune information personnelle n'est demandée : seul le code compte.</p>
+    <label for="champ-code">Code du billet</label>
+    <input type="text" id="champ-code" placeholder="Ex : A-00123" autocomplete="off" />
+    <button type="button" id="bouton-verifier">Vérifier mon billet</button>
+    <div id="message-verification" class="message" hidden></div>
+  </div>
+
+  <p class="discret" style="text-align:center">
+    Cette page se met à jour automatiquement pendant le tirage : inutile de la recharger.
+  </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../assets/tombola.js"></script>
+<script>
+  const carnetId = idCarnetDepuisUrl();
+  const titreCarnet = document.getElementById("titre-carnet");
+  const sousTitreCarnet = document.getElementById("sous-titre-carnet");
+  const carteDescription = document.getElementById("carte-description");
+  const descriptionCarnet = document.getElementById("description-carnet");
+  const listeLots = document.getElementById("liste-lots");
+  const messagePasDeLots = document.getElementById("message-pas-de-lots");
+  const champCode = document.getElementById("champ-code");
+  const boutonVerifier = document.getElementById("bouton-verifier");
+  const messageVerification = document.getElementById("message-verification");
+
+  if (!carnetId) {
+    titreCarnet.textContent = "Tombola introuvable";
+    sousTitreCarnet.textContent = "Le lien utilisé ne pointe vers aucune tombola.";
+  }
+
+  async function chargerEnTete() {
+    const { data, error } = await supabaseClient
+      .from("carnets")
+      .select("nom, description, date_tirage")
+      .eq("id", carnetId)
+      .single();
+
+    if (error || !data) {
+      titreCarnet.textContent = "Tombola introuvable";
+      sousTitreCarnet.textContent = "Vérifiez le lien fourni par l'organisateur.";
+      return;
+    }
+
+    titreCarnet.textContent = data.nom;
+    sousTitreCarnet.textContent = "Tirage : " + formaterDate(data.date_tirage);
+    if (data.description) {
+      descriptionCarnet.textContent = data.description;
+      carteDescription.hidden = false;
+    }
+  }
+
+  // Les résultats (lots + code gagnant une fois tiré) passent toujours par
+  // la fonction RPC resultats_carnet : jamais de lecture directe des
+  // billets, même côté page publique.
+  async function chargerResultats() {
+    const { data, error } = await supabaseClient.rpc("resultats_carnet", {
+      p_carnet_id: carnetId,
+    });
+
+    if (error || !data) return;
+
+    if (data.length === 0) {
+      messagePasDeLots.hidden = false;
+      listeLots.innerHTML = "";
+      return;
+    }
+
+    messagePasDeLots.hidden = true;
+    listeLots.innerHTML = data
+      .map((lot) => {
+        const etat = lot.code_gagnant
+          ? `<span class="lot-gagnant">${lot.code_gagnant}</span>`
+          : `<span class="lot-en-attente">pas encore tiré</span>`;
+        return `<li>
+          <span class="lot-rang">${lot.rang}</span>
+          <span class="lot-nom">${lot.nom_lot}</span>
+          ${etat}
+        </li>`;
+      })
+      .join("");
+  }
+
+  boutonVerifier.addEventListener("click", async () => {
+    const code = champCode.value.trim();
+    if (!code) {
+      afficherMessage(messageVerification, "Indiquez le code inscrit sur votre billet.", "erreur");
+      return;
+    }
+
+    boutonVerifier.disabled = true;
+    const { data, error } = await supabaseClient.rpc("verifier_billet", {
+      p_carnet_id: carnetId,
+      p_code: code,
+    });
+    boutonVerifier.disabled = false;
+
+    if (error) {
+      afficherMessage(messageVerification, "Une erreur est survenue, réessayez.", "erreur");
+      return;
+    }
+
+    const resultat = data && data[0];
+    if (!resultat || !resultat.existe) {
+      afficherMessage(messageVerification, "Ce code n'est pas enregistré pour cette tombola.", "erreur");
+    } else if (resultat.gagnant) {
+      afficherMessage(messageVerification, `🎉 Bravo, ce billet a gagné : ${resultat.nom_lot} (lot n°${resultat.rang}) !`, "succes");
+    } else {
+      afficherMessage(messageVerification, "Ce billet est bien enregistré. Le tirage n'a pas (encore) désigné ce billet comme gagnant.", "info");
+    }
+  });
+
+  // Direct : dès qu'un lot change (organisateur qui tire au sort), on
+  // redemande les résultats complets via resultats_carnet, seule habilitée
+  // à révéler le code du billet gagnant.
+  function ecouterLeDirect() {
+    if (!carnetId) return;
+    supabaseClient
+      .channel("lots-carnet-" + carnetId)
+      .on(
+        "postgres_changes",
+        { event: "UPDATE", schema: "public", table: "lots", filter: "carnet_id=eq." + carnetId },
+        () => chargerResultats()
+      )
+      .subscribe();
+  }
+
+  if (carnetId) {
+    chargerEnTete();
+    chargerResultats();
+    ecouterLeDirect();
+  }
+</script>
+</body>
+</html>
