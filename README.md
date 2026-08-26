@@ -1,0 +1,151 @@
+# Tombola Connect
+
+Plateforme web pour accompagner vos carnets de tombola papier « connectés » :
+chaque billet porte un code unique préimprimé, et cette plateforme permet de
+suivre en ligne l'inscription des billets et le tirage au sort, en direct.
+
+Deux profils :
+
+- **L'organisateur** (l'association qui a acheté les carnets) : crée un
+  carnet, indique les lots à gagner, enregistre les codes des billets déjà
+  imprimés, puis déclenche le tirage lot par lot le jour J.
+- **L'acheteur d'un billet** : consulte la page publique de la tombola,
+  voit les lots, et vérifie son billet avec juste son code — sans jamais
+  donner son nom, son e-mail ou son téléphone.
+
+## Pourquoi si peu d'informations demandées ?
+
+Choix volontaire : on ne demande **jamais** de nom, e-mail ou téléphone à
+l'acheteur d'un billet, que ce soit pour vérifier son billet ou consulter les
+résultats. Seul le code du billet compte. Moins de données personnelles
+stockées, c'est moins de risque en cas de problème (RGPD). Il n'y a donc pas
+de table « participants » dans la base de données.
+
+## Ce dont vous avez besoin pour faire tourner la plateforme
+
+Vous n'avez pas besoin de savoir programmer pour ces étapes : il s'agit de
+créer deux comptes gratuits (Supabase pour la base de données, Vercel pour
+l'hébergement du site) et de copier-coller quelques informations.
+
+### 1. Créer votre projet Supabase (la base de données)
+
+1. Allez sur [supabase.com](https://supabase.com) et créez un compte
+   gratuit, puis un nouveau projet (choisissez un mot de passe de base de
+   données, gardez-le de côté).
+2. Une fois le projet créé, allez dans **Project Settings → API**. Vous y
+   trouverez deux informations à copier :
+   - la **Project URL** (une adresse commençant par `https://...supabase.co`)
+   - la clé **anon public** (une longue chaîne de caractères)
+3. Ouvrez le fichier [`assets/tombola.js`](assets/tombola.js) dans ce dépôt,
+   et remplacez les deux lignes tout en haut du fichier :
+
+   ```js
+   const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
+   const SUPABASE_ANON_KEY = "VOTRE-CLE-ANON-PUBLIQUE";
+   ```
+
+   par vos propres valeurs. (La clé « anon » est publique par nature — elle
+   est visible dans le navigateur de tous vos visiteurs — ce n'est pas une
+   clé secrète. C'est normal et sans risque : la vraie protection des
+   données est assurée par les règles de sécurité appliquées à l'étape
+   suivante.)
+
+### 2. Appliquer la structure de la base de données
+
+Dans le tableau de bord Supabase, allez dans **SQL Editor**, créez une
+nouvelle requête, collez tout le contenu du fichier
+[`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql), et
+cliquez sur **Run**. Cela crée les tables et toutes les règles de sécurité
+nécessaires (ne relancez pas ce script une deuxième fois sur le même projet,
+il n'est prévu que pour une première installation).
+
+### 3. Activer la connexion par e-mail
+
+Dans Supabase, allez dans **Authentication → Providers**, et vérifiez que
+« Email » est activé (c'est le cas par défaut). C'est ce qui permet à
+l'organisateur de se connecter avec un simple lien reçu par e-mail, sans mot
+de passe.
+
+Pensez aussi à ajouter l'adresse de votre site (une fois connu, voir étape
+4) dans **Authentication → URL Configuration → Redirect URLs**, sinon le
+lien de connexion reçu par e-mail ne fonctionnera pas une fois le site en
+ligne.
+
+### 4. Mettre le site en ligne avec Vercel
+
+1. Allez sur [vercel.com](https://vercel.com), créez un compte gratuit et
+   connectez-le à votre compte GitHub.
+2. Cliquez sur **Add New → Project**, choisissez ce dépôt
+   (`tombola-connect`), et laissez les réglages par défaut (aucune commande
+   de build n'est nécessaire, c'est un site statique). Cliquez sur
+   **Deploy**.
+3. Une fois en ligne, Vercel vous donne une adresse (ex :
+   `https://tombola-connect.vercel.app`). Ajoutez-la dans Supabase comme
+   indiqué à l'étape 3.
+
+Votre site est maintenant accessible : la page d'accueil est
+`/page/index.html`, l'espace organisateur `/page/organisateur.html`, et
+chaque carnet a sa propre page publique `/page/carnet.html?id=...` (le lien
+exact est affiché dans l'espace organisateur une fois le carnet créé).
+
+## Utiliser la plateforme
+
+1. Ouvrez l'espace organisateur, indiquez votre e-mail, cliquez sur le lien
+   reçu.
+2. Créez un carnet (nom de la tombola, description, date du tirage).
+3. Ajoutez les lots, du plus important (rang 1) au dernier.
+4. Enregistrez les codes des billets déjà imprimés : soit une plage (par
+   exemple préfixe `A-`, de `1` à `500`), soit une liste collée depuis un
+   fichier de votre imprimeur.
+5. Partagez le lien public du carnet (affiché dans l'espace organisateur)
+   avec les acheteurs de billets, ou imprimez-le sur les carnets eux-mêmes.
+6. Le jour du tirage, ouvrez le carnet dans l'espace organisateur et cliquez
+   sur « Tirer ce lot » pour chaque lot, dans l'ordre de votre choix. Les
+   visiteurs qui regardent la page publique voient les gagnants apparaître
+   en direct, sans recharger la page.
+
+## Décisions prises pour vous (et pourquoi)
+
+- **Format des codes de billets** : libre. La base de données ne force
+  aucun format particulier (ni longueur, ni préfixe précis) : elle compare
+  simplement les codes en majuscules et sans espaces superflus, pour
+  tolérer une petite différence de saisie. Votre imprimeur peut donc garder
+  sa numérotation habituelle.
+- **Plus de lots que de billets enregistrés** : si un tirage n'a plus de
+  billet disponible (tous les billets enregistrés ont déjà gagné un lot sur
+  ce carnet), le bouton « Tirer ce lot » affiche un message d'erreur clair
+  plutôt que d'attribuer un même billet à deux lots. Mieux vaut ajuster le
+  nombre de lots ou enregistrer davantage de billets que de forcer un
+  tirage incohérent.
+- **Vérification d'un billet depuis l'accueil** : comme la page d'accueil
+  ne connaît pas de carnet en particulier, un menu déroulant permet de
+  choisir la tombola avant de saisir le code. Depuis la page publique d'un
+  carnet (le lien partagé par l'organisateur), ce choix n'est pas nécessaire.
+
+## Ce qu'il reste à faire de votre côté
+
+Cette livraison contient tout le code de la plateforme, mais pas
+l'infrastructure elle-même (que seul vous pouvez créer avec vos propres
+comptes) :
+
+- Créer le projet Supabase et y appliquer la migration SQL (étapes 1 et 2
+  ci-dessus).
+- Vérifier que la connexion par e-mail est bien activée (étape 3).
+- Connecter ce dépôt à un projet Vercel (étape 4).
+- Faire un essai complet (création d'un carnet de test, quelques billets,
+  un tirage) avant d'utiliser la plateforme pour une vraie tombola.
+
+## Organisation du code
+
+```
+assets/tombola.css        styles communs aux 3 pages
+assets/tombola.js         connexion à Supabase + fonctions communes
+page/index.html           accueil : présentation + vérification de billet
+page/organisateur.html    connexion, gestion des carnets, tirage au sort
+page/carnet.html          page publique d'un carnet (lots, résultats en direct)
+supabase/migrations/      structure de la base de données et règles de sécurité
+vercel.json               configuration minimale pour l'hébergement Vercel
+```
+
+Pas de framework, pas d'étape de build : chaque page est un fichier HTML
+autonome, à ouvrir tel quel une fois hébergé.
