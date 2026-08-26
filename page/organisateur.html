@@ -66,7 +66,8 @@
         <p><a id="lien-public-carnet" href="#" target="_blank"></a></p>
 
         <p class="discret">Code QR à imprimer sur vos billets : un scan amène directement sur cette page.</p>
-        <canvas id="qrcode-carnet"></canvas><br>
+        <div id="qrcode-carnet"></div>
+        <p id="message-qrcode" class="message erreur" hidden>Le QR code n'a pas pu être généré. Essayez de recharger la page.</p>
         <button type="button" class="secondaire" id="bouton-telecharger-qrcode">Télécharger l'image du QR code</button>
       </div>
 
@@ -123,7 +124,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../assets/tombola.js"></script>
 <script>
   const carteConnexion = document.getElementById("carte-connexion");
@@ -149,8 +150,10 @@
   const zoneDetailCarnet = document.getElementById("zone-detail-carnet");
   const titreDetailCarnet = document.getElementById("titre-detail-carnet");
   const lienPublicCarnet = document.getElementById("lien-public-carnet");
-  const canevasQrCode = document.getElementById("qrcode-carnet");
+  const conteneurQrCode = document.getElementById("qrcode-carnet");
+  const messageQrCode = document.getElementById("message-qrcode");
   const boutonTelechargerQrCode = document.getElementById("bouton-telecharger-qrcode");
+  let instanceQrCode = null;
 
   const lotImprimeRelie = document.getElementById("lot-imprime-relie");
   const lotImprimeReference = document.getElementById("lot-imprime-reference");
@@ -378,7 +381,21 @@
 
     // Généré directement dans le navigateur : le lien du carnet n'est
     // envoyé à aucun service externe pour produire ce QR code.
-    QRCode.toCanvas(canevasQrCode, urlPublique.toString(), { width: 220 });
+    if (typeof QRCode === "undefined") {
+      messageQrCode.hidden = false;
+    } else {
+      messageQrCode.hidden = true;
+      if (instanceQrCode) {
+        instanceQrCode.clear();
+        instanceQrCode.makeCode(urlPublique.toString());
+      } else {
+        instanceQrCode = new QRCode(conteneurQrCode, {
+          text: urlPublique.toString(),
+          width: 220,
+          height: 220,
+        });
+      }
+    }
 
     if (referenceImprimee) {
       lotImprimeRelie.hidden = false;
@@ -395,9 +412,20 @@
   }
 
   boutonTelechargerQrCode.addEventListener("click", () => {
+    // Selon le navigateur, la bibliothèque dessine le QR code sur un
+    // <canvas> ou, à défaut, sur une image <img> déjà encodée.
+    const canevas = conteneurQrCode.querySelector("canvas");
+    const image = conteneurQrCode.querySelector("img");
+    const source = canevas ? canevas.toDataURL("image/png") : image && image.src;
+
+    if (!source) {
+      afficherMessage(messageQrCode, "Le QR code n'est pas encore prêt, réessayez dans un instant.", "erreur");
+      return;
+    }
+
     const lien = document.createElement("a");
     lien.download = "qrcode-tombola.png";
-    lien.href = canevasQrCode.toDataURL("image/png");
+    lien.href = source;
     lien.click();
   });
 
