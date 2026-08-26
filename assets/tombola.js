@@ -9,8 +9,8 @@
 // de tout le monde) : ce n'est pas une clé secrète, elle est protégée par les
 // règles de sécurité (RLS) définies dans supabase/migrations/0001_init.sql.
 // ============================================================================
-const SUPABASE_URL = "https://VOTRE-PROJET.supabase.co";
-const SUPABASE_ANON_KEY = "VOTRE-CLE-ANON-PUBLIQUE";
+const SUPABASE_URL = "https://mxcsbrigfuhzcmttpzqz.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_SDkXcdNkJPjjcb9g29MNNQ_e4DwNTca";
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
