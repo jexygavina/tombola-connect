@@ -46,7 +46,10 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/tombola.js"></script>
 <script>
-  const carnetId = idCarnetDepuisUrl();
+  const identifiant = identifiantCarnetDepuisUrl();
+  // Résolu une fois le carnet trouvé (par id ou par référence imprimée) :
+  // tout ce qui suit (RPC, direct) utilise toujours l'identifiant technique.
+  let carnetId = null;
   const titreCarnet = document.getElementById("titre-carnet");
   const sousTitreCarnet = document.getElementById("sous-titre-carnet");
   const carteDescription = document.getElementById("carte-description");
@@ -61,7 +64,7 @@
   const boutonVerifier = document.getElementById("bouton-verifier");
   const messageVerification = document.getElementById("message-verification");
 
-  if (!carnetId) {
+  if (!identifiant) {
     titreCarnet.textContent = "Tombola introuvable";
     sousTitreCarnet.textContent = "Le lien utilisé ne pointe vers aucune tombola.";
   }
@@ -69,8 +72,8 @@
   async function chargerEnTete() {
     const { data, error } = await supabaseClient
       .from("carnets")
-      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact")
-      .eq("id", carnetId)
+      .select("id, nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact")
+      .eq(identifiant.colonne, identifiant.valeur)
       .single();
 
     if (error || !data) {
@@ -79,6 +82,7 @@
       return;
     }
 
+    carnetId = data.id;
     titreCarnet.textContent = data.nom;
     sousTitreCarnet.textContent = "Tirage : " + formaterDate(data.date_tirage);
     if (data.description) {
@@ -169,11 +173,15 @@
       .subscribe();
   }
 
-  if (carnetId) {
-    chargerEnTete();
+  async function demarrer() {
+    if (!identifiant) return;
+    await chargerEnTete();
+    if (!carnetId) return;
     chargerResultats();
     ecouterLeDirect();
   }
+
+  demarrer();
 </script>
 </body>
 </html>

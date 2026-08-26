@@ -71,6 +71,20 @@
       </div>
 
       <div class="carte">
+        <h2>Lot de billets déjà imprimé</h2>
+        <p id="lot-imprime-relie" class="discret" hidden>Ce carnet est relié au lot imprimé <strong id="lot-imprime-reference"></strong>.</p>
+        <div id="lot-imprime-formulaire">
+          <p class="discret">Si vous avez acheté des billets pré-imprimés avec QR code, scannez le QR code d'activation présent sur la couverture de votre carnet : cette page se remplit alors automatiquement. Vous pouvez aussi saisir les codes vous-même ci-dessous si besoin.</p>
+          <label for="champ-reference-imprimee">Référence</label>
+          <input type="text" id="champ-reference-imprimee" />
+          <label for="champ-cle-activation">Clé d'activation</label>
+          <input type="text" id="champ-cle-activation" />
+          <button type="button" id="bouton-relier-lot">Relier ce lot au carnet</button>
+        </div>
+        <div id="message-lot-imprime" class="message" hidden></div>
+      </div>
+
+      <div class="carte">
         <h2>Lots à gagner</h2>
         <ul class="liste-lots" id="liste-lots-organisateur"></ul>
         <label for="nouveau-lot-nom">Ajouter un lot</label>
@@ -138,6 +152,14 @@
   const canevasQrCode = document.getElementById("qrcode-carnet");
   const boutonTelechargerQrCode = document.getElementById("bouton-telecharger-qrcode");
 
+  const lotImprimeRelie = document.getElementById("lot-imprime-relie");
+  const lotImprimeReference = document.getElementById("lot-imprime-reference");
+  const lotImprimeFormulaire = document.getElementById("lot-imprime-formulaire");
+  const champReferenceImprimee = document.getElementById("champ-reference-imprimee");
+  const champCleActivation = document.getElementById("champ-cle-activation");
+  const boutonRelierLot = document.getElementById("bouton-relier-lot");
+  const messageLotImprime = document.getElementById("message-lot-imprime");
+
   const listeLotsOrganisateur = document.getElementById("liste-lots-organisateur");
   const nouveauLotNom = document.getElementById("nouveau-lot-nom");
   const boutonAjouterLot = document.getElementById("bouton-ajouter-lot");
@@ -157,6 +179,13 @@
 
   let utilisateurCourant = null;
   let carnetSelectionneId = null;
+
+  // Présents uniquement si l'organisateur a scanné le QR d'activation
+  // imprimé sur la couverture de son carnet (jamais sur les billets eux-
+  // mêmes) : { ref: référence publique, cle: clé secrète du lot }.
+  const paramsUrl = new URLSearchParams(window.location.search);
+  let refDepuisUrl = paramsUrl.get("ref");
+  let cleDepuisUrl = paramsUrl.get("cle");
 
   // ---------------------------------------------------------------------
   // Connexion / déconnexion
@@ -193,12 +222,38 @@
       zoneConnectee.hidden = false;
       texteBienvenue.textContent = "Connecté en tant que " + utilisateurCourant.email;
       chargerMesCarnets();
+      verifierLotImprimeDepuisUrl();
     } else {
       carteConnexion.hidden = false;
       zoneConnectee.hidden = true;
       zoneDetailCarnet.hidden = true;
     }
   });
+
+  // Un QR de couverture déjà scanné une première fois doit rouvrir
+  // directement le carnet concerné plutôt que de proposer d'en recréer un.
+  async function verifierLotImprimeDepuisUrl() {
+    if (!refDepuisUrl) return;
+
+    const { data } = await supabaseClient
+      .from("carnets")
+      .select("id, nom, organisateur_id")
+      .eq("reference_imprimee", refDepuisUrl)
+      .maybeSingle();
+
+    if (data && data.organisateur_id === utilisateurCourant.id) {
+      ouvrirDetailCarnet(data.id, data.nom);
+      return;
+    }
+
+    if (cleDepuisUrl) {
+      afficherMessage(
+        messageCreation,
+        "Vous configurez un nouveau carnet à partir d'un lot de billets déjà imprimé : remplissez les informations ci-dessous, le lot sera relié automatiquement à la création.",
+        "info"
+      );
+    }
+  }
 
   // ---------------------------------------------------------------------
   // Création et liste des carnets
@@ -232,13 +287,32 @@
       return;
     }
 
-    afficherMessage(messageCreation, "Carnet créé !", "succes");
     nouveauNom.value = "";
     nouvelleDescription.value = "";
     nouvelleDate.value = "";
     nouvelleOrganisationNom.value = "";
     nouvelleOrganisationPresentation.value = "";
     nouvelleOrganisationContact.value = "";
+
+    if (refDepuisUrl && cleDepuisUrl) {
+      const { error: erreurLiaison } = await supabaseClient.rpc("activer_reference_imprimee", {
+        p_reference: refDepuisUrl,
+        p_cle_activation: cleDepuisUrl,
+        p_carnet_id: data.id,
+      });
+
+      if (erreurLiaison) {
+        afficherMessage(messageCreation, "Carnet créé, mais le lot n'a pas pu être relié automatiquement : " + erreurLiaison.message, "erreur");
+      } else {
+        afficherMessage(messageCreation, "Carnet créé et relié au lot de billets imprimé !", "succes");
+        refDepuisUrl = null;
+        cleDepuisUrl = null;
+        history.replaceState(null, "", window.location.pathname);
+      }
+    } else {
+      afficherMessage(messageCreation, "Carnet créé !", "succes");
+    }
+
     await chargerMesCarnets();
     ouvrirDetailCarnet(data.id, data.nom);
   });
@@ -277,19 +351,43 @@
   // Détail d'un carnet : lots, billets, tirage
   // ---------------------------------------------------------------------
 
-  function ouvrirDetailCarnet(carnetId, nomCarnet) {
+  async function ouvrirDetailCarnet(carnetId, nomCarnet) {
     carnetSelectionneId = carnetId;
     zoneDetailCarnet.hidden = false;
     titreDetailCarnet.textContent = nomCarnet;
 
+    const { data: carnet } = await supabaseClient
+      .from("carnets")
+      .select("reference_imprimee")
+      .eq("id", carnetId)
+      .single();
+    const referenceImprimee = carnet && carnet.reference_imprimee;
+
+    // Un carnet relié à un lot déjà imprimé garde la référence choisie à
+    // l'impression (le QR papier ne change jamais) ; sinon on retombe sur
+    // l'identifiant technique, comme pour un carnet créé sans billets
+    // pré-imprimés.
     const urlPublique = new URL("carnet.html", window.location.href);
-    urlPublique.searchParams.set("id", carnetId);
+    if (referenceImprimee) {
+      urlPublique.searchParams.set("ref", referenceImprimee);
+    } else {
+      urlPublique.searchParams.set("id", carnetId);
+    }
     lienPublicCarnet.href = urlPublique.toString();
     lienPublicCarnet.textContent = urlPublique.toString();
 
     // Généré directement dans le navigateur : le lien du carnet n'est
     // envoyé à aucun service externe pour produire ce QR code.
     QRCode.toCanvas(canevasQrCode, urlPublique.toString(), { width: 220 });
+
+    if (referenceImprimee) {
+      lotImprimeRelie.hidden = false;
+      lotImprimeReference.textContent = referenceImprimee;
+      lotImprimeFormulaire.hidden = true;
+    } else {
+      lotImprimeRelie.hidden = true;
+      lotImprimeFormulaire.hidden = false;
+    }
 
     chargerLots();
     chargerNombreBillets();
@@ -301,6 +399,33 @@
     lien.download = "qrcode-tombola.png";
     lien.href = canevasQrCode.toDataURL("image/png");
     lien.click();
+  });
+
+  boutonRelierLot.addEventListener("click", async () => {
+    const reference = champReferenceImprimee.value.trim();
+    const cle = champCleActivation.value.trim();
+    if (!reference || !cle) {
+      afficherMessage(messageLotImprime, "Indiquez la référence et la clé d'activation.", "erreur");
+      return;
+    }
+
+    boutonRelierLot.disabled = true;
+    const { error } = await supabaseClient.rpc("activer_reference_imprimee", {
+      p_reference: reference,
+      p_cle_activation: cle,
+      p_carnet_id: carnetSelectionneId,
+    });
+    boutonRelierLot.disabled = false;
+
+    if (error) {
+      afficherMessage(messageLotImprime, error.message || "Impossible de relier ce lot, réessayez.", "erreur");
+      return;
+    }
+
+    champReferenceImprimee.value = "";
+    champCleActivation.value = "";
+    afficherMessage(messageLotImprime, "Lot relié avec succès !", "succes");
+    ouvrirDetailCarnet(carnetSelectionneId, titreDetailCarnet.textContent);
   });
 
   async function chargerLots() {

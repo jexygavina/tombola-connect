@@ -65,6 +65,10 @@ requête = un clic sur Run) :
 3. [`0003_infos_organisation.sql`](supabase/migrations/0003_infos_organisation.sql) —
    ajoute les champs pour présenter l'association organisatrice sur la page
    publique de chaque carnet.
+4. [`0004_lots_imprimes.sql`](supabase/migrations/0004_lots_imprimes.sql) —
+   permet de relier un carnet à un lot de billets déjà imprimés à l'avance
+   (voir [Billets pré-imprimés avec QR code](#billets-pré-imprimés-avec-qr-code)
+   plus bas).
 
 Ne relancez pas un script déjà exécuté sur le même projet : chacun n'est
 prévu que pour une seule application. Si vous ajoutez ce dépôt à un nouveau
@@ -120,6 +124,38 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
    visiteurs qui regardent la page publique voient les gagnants apparaître
    en direct, sans recharger la page.
 
+## Billets pré-imprimés avec QR code
+
+Pour les carnets vendus avec des billets déjà imprimés à l'avance (avant
+même de savoir quelle association les achètera), deux QR codes différents
+sont prévus :
+
+- Un **QR public**, identique sur chaque billet du carnet, qui pointe vers
+  la page de consultation de la tombola (`carnet.html?ref=...`). C'est celui
+  que les acheteurs scannent.
+- Un **QR d'activation**, imprimé une seule fois sur la couverture du
+  carnet (jamais sur les billets), qui contient en plus une clé secrète.
+  C'est celui que l'association scanne pour configurer son carnet : la page
+  de l'espace organisateur s'ouvre automatiquement pré-remplie, il ne reste
+  qu'à créer le carnet (nom, lots...) pour que tout soit relié — aucune
+  saisie manuelle de code n'est nécessaire.
+
+Séparer les deux évite qu'un simple acheteur, en scannant son propre
+billet, puisse connaître de quoi configurer un carnet à la place de
+l'association.
+
+**Avant l'impression d'un nouveau lot**, chaque référence et sa clé
+d'activation doivent être enregistrées dans la base de données (table
+`references_impression`), sinon aucun QR d'activation ne pourra fonctionner.
+Cette étape n'est pas encore automatisée dans l'espace organisateur :
+demandez à Claude de vous préparer un nouveau lot (il générera les
+références, la requête SQL à coller dans le SQL Editor, et si besoin les
+images des QR codes à transmettre à votre imprimeur).
+
+Un carnet créé sans passer par un QR d'activation fonctionne normalement :
+son lien public utilise alors son identifiant technique
+(`carnet.html?id=...`) plutôt qu'une référence imprimée.
+
 ## Décisions prises pour vous (et pourquoi)
 
 - **Format des codes de billets** : libre. La base de données ne force
@@ -138,6 +174,10 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
   ne connaît pas de carnet en particulier, un menu déroulant permet de
   choisir la tombola avant de saisir le code. Depuis la page publique d'un
   carnet (le lien partagé par l'organisateur), ce choix n'est pas nécessaire.
+- **Deux QR codes distincts pour les billets pré-imprimés** : le QR des
+  billets (public) et le QR d'activation (couverture, secret) portent des
+  informations différentes, pour qu'un acheteur ne puisse jamais configurer
+  un carnet à la place de l'association qui a acheté les billets.
 
 ## Ce qu'il reste à faire de votre côté
 
