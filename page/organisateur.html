@@ -40,6 +40,14 @@
       <textarea id="nouvelle-description" placeholder="Quelques mots sur votre tombola…"></textarea>
       <label for="nouvelle-date">Date et heure du tirage (facultatif)</label>
       <input type="datetime-local" id="nouvelle-date" />
+
+      <label for="nouvelle-organisation-nom">Nom de l'association / organisation (facultatif)</label>
+      <input type="text" id="nouvelle-organisation-nom" placeholder="Ex : Comité des fêtes de Villeneuve" />
+      <label for="nouvelle-organisation-presentation">Présentation de l'organisation (facultatif)</label>
+      <textarea id="nouvelle-organisation-presentation" placeholder="Qui vous êtes, votre mission, à quoi sert la collecte…"></textarea>
+      <label for="nouvelle-organisation-contact">Contact / site web (facultatif)</label>
+      <input type="text" id="nouvelle-organisation-contact" placeholder="Ex : contact@association.fr ou www.association.fr" />
+
       <button type="button" id="bouton-creer-carnet">Créer le carnet</button>
       <div id="message-creation" class="message" hidden></div>
     </div>
@@ -56,6 +64,10 @@
         <h2 id="titre-detail-carnet"></h2>
         <p class="discret">Lien à partager avec les acheteurs de billets :</p>
         <p><a id="lien-public-carnet" href="#" target="_blank"></a></p>
+
+        <p class="discret">Code QR à imprimer sur vos billets : un scan amène directement sur cette page.</p>
+        <canvas id="qrcode-carnet"></canvas><br>
+        <button type="button" class="secondaire" id="bouton-telecharger-qrcode">Télécharger l'image du QR code</button>
       </div>
 
       <div class="carte">
@@ -97,6 +109,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script src="../assets/tombola.js"></script>
 <script>
   const carteConnexion = document.getElementById("carte-connexion");
@@ -110,6 +123,9 @@
   const nouveauNom = document.getElementById("nouveau-nom");
   const nouvelleDescription = document.getElementById("nouvelle-description");
   const nouvelleDate = document.getElementById("nouvelle-date");
+  const nouvelleOrganisationNom = document.getElementById("nouvelle-organisation-nom");
+  const nouvelleOrganisationPresentation = document.getElementById("nouvelle-organisation-presentation");
+  const nouvelleOrganisationContact = document.getElementById("nouvelle-organisation-contact");
   const boutonCreerCarnet = document.getElementById("bouton-creer-carnet");
   const messageCreation = document.getElementById("message-creation");
 
@@ -119,6 +135,8 @@
   const zoneDetailCarnet = document.getElementById("zone-detail-carnet");
   const titreDetailCarnet = document.getElementById("titre-detail-carnet");
   const lienPublicCarnet = document.getElementById("lien-public-carnet");
+  const canevasQrCode = document.getElementById("qrcode-carnet");
+  const boutonTelechargerQrCode = document.getElementById("bouton-telecharger-qrcode");
 
   const listeLotsOrganisateur = document.getElementById("liste-lots-organisateur");
   const nouveauLotNom = document.getElementById("nouveau-lot-nom");
@@ -201,6 +219,9 @@
         nom,
         description: nouvelleDescription.value.trim() || null,
         date_tirage: nouvelleDate.value ? new Date(nouvelleDate.value).toISOString() : null,
+        organisation_nom: nouvelleOrganisationNom.value.trim() || null,
+        organisation_presentation: nouvelleOrganisationPresentation.value.trim() || null,
+        organisation_contact: nouvelleOrganisationContact.value.trim() || null,
       })
       .select()
       .single();
@@ -215,6 +236,9 @@
     nouveauNom.value = "";
     nouvelleDescription.value = "";
     nouvelleDate.value = "";
+    nouvelleOrganisationNom.value = "";
+    nouvelleOrganisationPresentation.value = "";
+    nouvelleOrganisationContact.value = "";
     await chargerMesCarnets();
     ouvrirDetailCarnet(data.id, data.nom);
   });
@@ -263,10 +287,21 @@
     lienPublicCarnet.href = urlPublique.toString();
     lienPublicCarnet.textContent = urlPublique.toString();
 
+    // Généré directement dans le navigateur : le lien du carnet n'est
+    // envoyé à aucun service externe pour produire ce QR code.
+    QRCode.toCanvas(canevasQrCode, urlPublique.toString(), { width: 220 });
+
     chargerLots();
     chargerNombreBillets();
     zoneDetailCarnet.scrollIntoView({ behavior: "smooth" });
   }
+
+  boutonTelechargerQrCode.addEventListener("click", () => {
+    const lien = document.createElement("a");
+    lien.download = "qrcode-tombola.png";
+    lien.href = canevasQrCode.toDataURL("image/png");
+    lien.click();
+  });
 
   async function chargerLots() {
     const { data, error } = await supabaseClient

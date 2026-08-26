@@ -17,6 +17,12 @@
     <p id="description-carnet"></p>
   </div>
 
+  <div class="carte" id="carte-organisation" hidden>
+    <h2 id="organisation-nom"></h2>
+    <p id="organisation-presentation"></p>
+    <p class="discret" id="organisation-contact"></p>
+  </div>
+
   <div class="carte">
     <h2>Lots à gagner</h2>
     <p id="message-pas-de-lots" class="discret" hidden>Aucun lot n'a encore été ajouté par l'organisateur.</p>
@@ -47,6 +53,10 @@
   const descriptionCarnet = document.getElementById("description-carnet");
   const listeLots = document.getElementById("liste-lots");
   const messagePasDeLots = document.getElementById("message-pas-de-lots");
+  const carteOrganisation = document.getElementById("carte-organisation");
+  const organisationNom = document.getElementById("organisation-nom");
+  const organisationPresentation = document.getElementById("organisation-presentation");
+  const organisationContact = document.getElementById("organisation-contact");
   const champCode = document.getElementById("champ-code");
   const boutonVerifier = document.getElementById("bouton-verifier");
   const messageVerification = document.getElementById("message-verification");
@@ -59,7 +69,7 @@
   async function chargerEnTete() {
     const { data, error } = await supabaseClient
       .from("carnets")
-      .select("nom, description, date_tirage")
+      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact")
       .eq("id", carnetId)
       .single();
 
@@ -74,6 +84,13 @@
     if (data.description) {
       descriptionCarnet.textContent = data.description;
       carteDescription.hidden = false;
+    }
+
+    if (data.organisation_nom || data.organisation_presentation || data.organisation_contact) {
+      organisationNom.textContent = data.organisation_nom || "Organisé par";
+      organisationPresentation.textContent = data.organisation_presentation || "";
+      organisationContact.textContent = data.organisation_contact || "";
+      carteOrganisation.hidden = false;
     }
   }
 

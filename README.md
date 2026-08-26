@@ -53,11 +53,22 @@ l'hébergement du site) et de copier-coller quelques informations.
 ### 2. Appliquer la structure de la base de données
 
 Dans le tableau de bord Supabase, allez dans **SQL Editor**, créez une
-nouvelle requête, collez tout le contenu du fichier
-[`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql), et
-cliquez sur **Run**. Cela crée les tables et toutes les règles de sécurité
-nécessaires (ne relancez pas ce script une deuxième fois sur le même projet,
-il n'est prévu que pour une première installation).
+nouvelle requête. Collez et exécutez (**Run**), **dans l'ordre**, le contenu
+de chaque fichier du dossier `supabase/migrations/` (un fichier = une
+requête = un clic sur Run) :
+
+1. [`0001_init.sql`](supabase/migrations/0001_init.sql) — crée les tables et
+   toutes les règles de sécurité.
+2. [`0002_tolerance_zeros_billet.sql`](supabase/migrations/0002_tolerance_zeros_billet.sql) —
+   permet de vérifier un billet même sans les zéros de tête (« 64 » retrouve
+   bien un billet enregistré « 064 »).
+3. [`0003_infos_organisation.sql`](supabase/migrations/0003_infos_organisation.sql) —
+   ajoute les champs pour présenter l'association organisatrice sur la page
+   publique de chaque carnet.
+
+Ne relancez pas un script déjà exécuté sur le même projet : chacun n'est
+prévu que pour une seule application. Si vous ajoutez ce dépôt à un nouveau
+projet Supabase plus tard, il faudra les rejouer tous, dans l'ordre.
 
 ### 3. Activer la connexion par e-mail
 
@@ -92,13 +103,18 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
 
 1. Ouvrez l'espace organisateur, indiquez votre e-mail, cliquez sur le lien
    reçu.
-2. Créez un carnet (nom de la tombola, description, date du tirage).
+2. Créez un carnet (nom de la tombola, description, date du tirage, et si
+   vous le souhaitez le nom, la présentation et le contact de l'association
+   qui organise — ces informations s'affichent sur la page publique du
+   carnet).
 3. Ajoutez les lots, du plus important (rang 1) au dernier.
 4. Enregistrez les codes des billets déjà imprimés : soit une plage (par
    exemple préfixe `A-`, de `1` à `500`), soit une liste collée depuis un
    fichier de votre imprimeur.
 5. Partagez le lien public du carnet (affiché dans l'espace organisateur)
-   avec les acheteurs de billets, ou imprimez-le sur les carnets eux-mêmes.
+   avec les acheteurs de billets, ou téléchargez le QR code fourni juste en
+   dessous et faites-le imprimer sur les billets par votre imprimeur : un
+   scan amène directement sur la page de la tombola.
 6. Le jour du tirage, ouvrez le carnet dans l'espace organisateur et cliquez
    sur « Tirer ce lot » pour chaque lot, dans l'ordre de votre choix. Les
    visiteurs qui regardent la page publique voient les gagnants apparaître
