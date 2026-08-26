@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tombola Connect — Préparer des lots à imprimer</title>
+<link rel="stylesheet" href="../assets/tombola.css" />
+</head>
+<body>
+<div class="page">
+  <header class="entete">
+    <h1>Préparer des lots à imprimer</h1>
+    <p class="discret">Outil réservé à l'administrateur de la plateforme.</p>
+  </header>
+
+  <!-- Connexion -->
+  <div class="carte" id="carte-connexion">
+    <h2>Connexion</h2>
+    <label for="champ-email">Adresse e-mail</label>
+    <input type="email" id="champ-email" placeholder="vous@exemple.fr" autocomplete="email" />
+    <button type="button" id="bouton-envoyer-lien">Recevoir le lien de connexion</button>
+    <div id="message-connexion" class="message" hidden></div>
+  </div>
+
+  <!-- Accès refusé (connecté mais pas le bon compte) -->
+  <div class="carte" id="carte-refus" hidden>
+    <p>Cet outil est réservé à l'administrateur de la plateforme. Vous êtes connecté avec un autre compte.</p>
+    <button type="button" class="secondaire" id="bouton-deconnexion-refus">Se déconnecter</button>
+  </div>
+
+  <!-- Génération -->
+  <div id="zone-generation" hidden>
+    <div class="carte">
+      <h2>Générer de nouveaux lots</h2>
+      <p class="discret">
+        Chaque lot correspond à un carnet physique à venir : une référence (à imprimer en QR sur chaque billet) et
+        une clé d'activation secrète (à imprimer en QR une seule fois, sur la couverture). Une fois généré, envoyez
+        les deux images de QR code de chaque lot à votre imprimeur.
+      </p>
+      <label for="champ-nombre">Combien de lots préparer ?</label>
+      <input type="number" id="champ-nombre" value="1" min="1" max="200" style="max-width:160px" />
+      <button type="button" id="bouton-generer">Générer les lots</button>
+      <div id="message-generation" class="message" hidden></div>
+    </div>
+
+    <div id="liste-resultats"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="../assets/tombola.js"></script>
+<script>
+  const ADRESSE_ADMINISTRATEUR = "jexy.gavina@protonmail.com";
+
+  const carteConnexion = document.getElementById("carte-connexion");
+  const champEmail = document.getElementById("champ-email");
+  const boutonEnvoyerLien = document.getElementById("bouton-envoyer-lien");
+  const messageConnexion = document.getElementById("message-connexion");
+
+  const carteRefus = document.getElementById("carte-refus");
+  const boutonDeconnexionRefus = document.getElementById("bouton-deconnexion-refus");
+
+  const zoneGeneration = document.getElementById("zone-generation");
+  const champNombre = document.getElementById("champ-nombre");
+  const boutonGenerer = document.getElementById("bouton-generer");
+  const messageGeneration = document.getElementById("message-generation");
+  const listeResultats = document.getElementById("liste-resultats");
+
+  boutonEnvoyerLien.addEventListener("click", async () => {
+    const email = champEmail.value.trim();
+    if (!email) {
+      afficherMessage(messageConnexion, "Indiquez votre adresse e-mail.", "erreur");
+      return;
+    }
+    boutonEnvoyerLien.disabled = true;
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    boutonEnvoyerLien.disabled = false;
+
+    if (error) {
+      afficherMessage(messageConnexion, "Impossible d'envoyer le lien, réessayez.", "erreur");
+    } else {
+      afficherMessage(messageConnexion, "E-mail envoyé ! Cliquez sur le lien reçu pour vous connecter.", "succes");
+    }
+  });
+
+  boutonDeconnexionRefus.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+  });
+
+  supabaseClient.auth.onAuthStateChange((_evenement, session) => {
+    const utilisateur = session ? session.user : null;
+
+    if (!utilisateur) {
+      carteConnexion.hidden = false;
+      carteRefus.hidden = true;
+      zoneGeneration.hidden = true;
+      return;
+    }
+
+    carteConnexion.hidden = true;
+
+    if (utilisateur.email !== ADRESSE_ADMINISTRATEUR) {
+      carteRefus.hidden = false;
+      zoneGeneration.hidden = true;
+      return;
+    }
+
+    carteRefus.hidden = true;
+    zoneGeneration.hidden = false;
+  });
+
+  boutonGenerer.addEventListener("click", async () => {
+    const nombre = parseInt(champNombre.value, 10);
+    if (!nombre || nombre < 1 || nombre > 200) {
+      afficherMessage(messageGeneration, "Choisissez un nombre de lots entre 1 et 200.", "erreur");
+      return;
+    }
+
+    boutonGenerer.disabled = true;
+    const { data, error } = await supabaseClient.rpc("generer_lots_imprimes", { p_nombre: nombre });
+    boutonGenerer.disabled = false;
+
+    if (error) {
+      afficherMessage(messageGeneration, error.message || "Impossible de générer ces lots, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageGeneration, `${data.length} lot(s) généré(s) ci-dessous.`, "succes");
+    afficherResultats(data);
+  });
+
+  function afficherResultats(lots) {
+    listeResultats.innerHTML = "";
+
+    lots.forEach((lot, index) => {
+      const urlBillet = new URL("carnet.html", window.location.href);
+      urlBillet.searchParams.set("ref", lot.reference);
+
+      const urlActivation = new URL("organisateur.html", window.location.href);
+      urlActivation.searchParams.set("ref", lot.reference);
+      urlActivation.searchParams.set("cle", lot.cle_activation);
+
+      const carte = document.createElement("div");
+      carte.className = "carte";
+      carte.innerHTML = `
+        <h2>Lot ${index + 1} — référence ${lot.reference}</h2>
+        <div class="barre-actions" style="align-items:flex-start">
+          <div>
+            <p class="discret">QR à imprimer sur chaque billet du carnet</p>
+            <div id="qr-billet-${index}"></div>
+            <button type="button" class="secondaire" data-telecharger="qr-billet-${index}" data-nom="billet-${lot.reference}.png">Télécharger</button>
+          </div>
+          <div>
+            <p class="discret">QR d'activation à imprimer une seule fois, sur la couverture</p>
+            <div id="qr-activation-${index}"></div>
+            <button type="button" class="secondaire" data-telecharger="qr-activation-${index}" data-nom="activation-${lot.reference}.png">Télécharger</button>
+          </div>
+        </div>
+      `;
+      listeResultats.appendChild(carte);
+
+      new QRCode(document.getElementById(`qr-billet-${index}`), { text: urlBillet.toString(), width: 180, height: 180 });
+      new QRCode(document.getElementById(`qr-activation-${index}`), { text: urlActivation.toString(), width: 180, height: 180 });
+    });
+
+    listeResultats.querySelectorAll("button[data-telecharger]").forEach((bouton) => {
+      bouton.addEventListener("click", () => {
+        const conteneur = document.getElementById(bouton.dataset.telecharger);
+        const canevas = conteneur.querySelector("canvas");
+        const image = conteneur.querySelector("img");
+        const source = canevas ? canevas.toDataURL("image/png") : image && image.src;
+        if (!source) return;
+
+        const lien = document.createElement("a");
+        lien.download = bouton.dataset.nom;
+        lien.href = source;
+        lien.click();
+      });
+    });
+  }
+</script>
+</body>
+</html>

@@ -69,6 +69,9 @@ requête = un clic sur Run) :
    permet de relier un carnet à un lot de billets déjà imprimés à l'avance
    (voir [Billets pré-imprimés avec QR code](#billets-pré-imprimés-avec-qr-code)
    plus bas).
+5. [`0005_generer_lots_imprimes.sql`](supabase/migrations/0005_generer_lots_imprimes.sql) —
+   ajoute l'outil (page `impression.html`) qui prépare de nouveaux lots
+   avant l'impression.
 
 Ne relancez pas un script déjà exécuté sur le même projet : chacun n'est
 prévu que pour une seule application. Si vous ajoutez ce dépôt à un nouveau
@@ -144,13 +147,13 @@ Séparer les deux évite qu'un simple acheteur, en scannant son propre
 billet, puisse connaître de quoi configurer un carnet à la place de
 l'association.
 
-**Avant l'impression d'un nouveau lot**, chaque référence et sa clé
-d'activation doivent être enregistrées dans la base de données (table
-`references_impression`), sinon aucun QR d'activation ne pourra fonctionner.
-Cette étape n'est pas encore automatisée dans l'espace organisateur :
-demandez à Claude de vous préparer un nouveau lot (il générera les
-références, la requête SQL à coller dans le SQL Editor, et si besoin les
-images des QR codes à transmettre à votre imprimeur).
+**Avant l'impression d'un nouveau lot**, préparez les références et clés
+d'activation avec l'outil dédié : `/page/impression.html`. Cette page n'est
+pas mise en avant ailleurs sur le site (elle n'est utile qu'à vous) et est
+réservée à votre compte : indiquez combien de carnets vous préparez,
+l'outil génère chaque référence, sa clé secrète, et les deux images de QR
+code prêtes à télécharger et à transmettre à votre imprimeur (le QR des
+billets et le QR de couverture, pour chaque lot).
 
 Un carnet créé sans passer par un QR d'activation fonctionne normalement :
 son lien public utilise alors son identifiant technique
@@ -195,11 +198,12 @@ comptes) :
 ## Organisation du code
 
 ```
-assets/tombola.css        styles communs aux 3 pages
+assets/tombola.css        styles communs à toutes les pages
 assets/tombola.js         connexion à Supabase + fonctions communes
 page/index.html           accueil : présentation + vérification de billet
 page/organisateur.html    connexion, gestion des carnets, tirage au sort
 page/carnet.html          page publique d'un carnet (lots, résultats en direct)
+page/impression.html      outil réservé à l'administrateur : prépare les lots à imprimer
 supabase/migrations/      structure de la base de données et règles de sécurité
 vercel.json               configuration minimale pour l'hébergement Vercel
 ```
