@@ -108,9 +108,10 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
 
 - **Format des codes de billets** : libre. La base de données ne force
   aucun format particulier (ni longueur, ni préfixe précis) : elle compare
-  simplement les codes en majuscules et sans espaces superflus, pour
-  tolérer une petite différence de saisie. Votre imprimeur peut donc garder
-  sa numérotation habituelle.
+  simplement les codes en majuscules et sans espaces superflus, et ignore
+  les zéros de tête du numéro (un billet enregistré « A-064 » est retrouvé
+  même si l'acheteur tape « A-64 »), pour tolérer une petite différence de
+  saisie. Votre imprimeur peut donc garder sa numérotation habituelle.
 - **Plus de lots que de billets enregistrés** : si un tirage n'a plus de
   billet disponible (tous les billets enregistrés ont déjà gagné un lot sur
   ce carnet), le bouton « Tirer ce lot » affiche un message d'erreur clair
