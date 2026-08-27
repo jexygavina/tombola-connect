@@ -94,7 +94,7 @@
     }
 
     carnetId = data.id;
-    titreCarnet.textContent = data.nom;
+    titreCarnet.textContent = (data.logo || "🎟️") + " " + data.nom;
     sousTitreCarnet.textContent = "Tirage : " + formaterDate(data.date_tirage);
     if (data.description) {
       descriptionCarnet.textContent = data.description;

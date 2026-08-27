@@ -82,6 +82,8 @@ requête = un clic sur Run) :
    supprimer.
 9. [`0009_confidentialite_carnets.sql`](supabase/migrations/0009_confidentialite_carnets.sql) —
    empêche de lister tous les carnets de la plateforme (voir plus bas).
+10. [`0010_icone_carnet.sql`](supabase/migrations/0010_icone_carnet.sql) —
+    ajoute une icône décorative au choix pour chaque carnet.
 
 Ne relancez pas un script déjà exécuté sur le même projet : chacun n'est
 prévu que pour une seule application. Si vous ajoutez ce dépôt à un nouveau
@@ -122,8 +124,8 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
    reçu.
 2. Créez un carnet (nom de la tombola, description, date du tirage, et si
    vous le souhaitez le nom, la présentation et le contact de l'association
-   qui organise — ces informations s'affichent sur la page publique du
-   carnet).
+   qui organise, ainsi qu'une icône au choix parmi celles proposées — ces
+   informations s'affichent sur la page publique du carnet).
 3. Ajoutez les lots, du plus important (rang 1) au dernier. Une erreur de
    frappe ? Chaque lot peut être renommé ou supprimé depuis la liste, et le
    carnet lui-même (nom, description, dates, infos d'organisation) peut être

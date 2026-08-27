@@ -56,6 +56,30 @@
       <label for="nouvelle-organisation-contact">Contact / site web (facultatif)</label>
       <input type="text" id="nouvelle-organisation-contact" placeholder="Ex : contact@association.fr ou www.association.fr" />
 
+      <label>Icône du carnet (facultatif)</label>
+      <div class="grille-icones" id="icones-creation" data-valeur="">
+        <button type="button" data-icone="🎉">🎉</button>
+        <button type="button" data-icone="🎈">🎈</button>
+        <button type="button" data-icone="🎁">🎁</button>
+        <button type="button" data-icone="🎟️">🎟️</button>
+        <button type="button" data-icone="🎫">🎫</button>
+        <button type="button" data-icone="⚽">⚽</button>
+        <button type="button" data-icone="🏀">🏀</button>
+        <button type="button" data-icone="🎾">🎾</button>
+        <button type="button" data-icone="🏸">🏸</button>
+        <button type="button" data-icone="🚲">🚲</button>
+        <button type="button" data-icone="✈️">✈️</button>
+        <button type="button" data-icone="🧳">🧳</button>
+        <button type="button" data-icone="🌴">🌴</button>
+        <button type="button" data-icone="🌊">🌊</button>
+        <button type="button" data-icone="🎄">🎄</button>
+        <button type="button" data-icone="🎃">🎃</button>
+        <button type="button" data-icone="🐰">🐰</button>
+        <button type="button" data-icone="🍷">🍷</button>
+        <button type="button" data-icone="📖">📖</button>
+        <button type="button" data-icone="⌚">⌚</button>
+      </div>
+
       <button type="button" id="bouton-creer-carnet">Créer le carnet</button>
       <div id="message-creation" class="message" hidden></div>
     </div>
@@ -98,6 +122,31 @@
         <textarea id="modif-organisation-presentation"></textarea>
         <label for="modif-organisation-contact">Contact / site web (facultatif)</label>
         <input type="text" id="modif-organisation-contact" />
+
+        <label>Icône du carnet (facultatif)</label>
+        <div class="grille-icones" id="icones-modification" data-valeur="">
+          <button type="button" data-icone="🎉">🎉</button>
+          <button type="button" data-icone="🎈">🎈</button>
+          <button type="button" data-icone="🎁">🎁</button>
+          <button type="button" data-icone="🎟️">🎟️</button>
+          <button type="button" data-icone="🎫">🎫</button>
+          <button type="button" data-icone="⚽">⚽</button>
+          <button type="button" data-icone="🏀">🏀</button>
+          <button type="button" data-icone="🎾">🎾</button>
+          <button type="button" data-icone="🏸">🏸</button>
+          <button type="button" data-icone="🚲">🚲</button>
+          <button type="button" data-icone="✈️">✈️</button>
+          <button type="button" data-icone="🧳">🧳</button>
+          <button type="button" data-icone="🌴">🌴</button>
+          <button type="button" data-icone="🌊">🌊</button>
+          <button type="button" data-icone="🎄">🎄</button>
+          <button type="button" data-icone="🎃">🎃</button>
+          <button type="button" data-icone="🐰">🐰</button>
+          <button type="button" data-icone="🍷">🍷</button>
+          <button type="button" data-icone="📖">📖</button>
+          <button type="button" data-icone="⌚">⌚</button>
+        </div>
+
         <button type="button" id="bouton-modifier-carnet">Enregistrer les modifications</button>
         <div id="message-modification" class="message" hidden></div>
 
@@ -251,6 +300,41 @@
   let cleDepuisUrl = paramsUrl.get("cle");
 
   // ---------------------------------------------------------------------
+  // Grille d'icônes (création et modification d'un carnet)
+  // ---------------------------------------------------------------------
+
+  function initialiserGrilleIcones(conteneurId) {
+    const conteneur = document.getElementById(conteneurId);
+    conteneur.querySelectorAll("button[data-icone]").forEach((bouton) => {
+      bouton.addEventListener("click", () => {
+        const etaitSelectionne = bouton.classList.contains("selectionne");
+        conteneur.querySelectorAll("button[data-icone]").forEach((b) => b.classList.remove("selectionne"));
+        if (etaitSelectionne) {
+          conteneur.dataset.valeur = "";
+        } else {
+          bouton.classList.add("selectionne");
+          conteneur.dataset.valeur = bouton.dataset.icone;
+        }
+      });
+    });
+  }
+
+  function iconeSelectionnee(conteneurId) {
+    return document.getElementById(conteneurId).dataset.valeur || null;
+  }
+
+  function definirIconeSelectionnee(conteneurId, valeur) {
+    const conteneur = document.getElementById(conteneurId);
+    conteneur.dataset.valeur = valeur || "";
+    conteneur.querySelectorAll("button[data-icone]").forEach((b) => {
+      b.classList.toggle("selectionne", b.dataset.icone === valeur);
+    });
+  }
+
+  initialiserGrilleIcones("icones-creation");
+  initialiserGrilleIcones("icones-modification");
+
+  // ---------------------------------------------------------------------
   // Connexion / déconnexion
   // ---------------------------------------------------------------------
 
@@ -340,6 +424,7 @@
         organisation_nom: nouvelleOrganisationNom.value.trim() || null,
         organisation_presentation: nouvelleOrganisationPresentation.value.trim() || null,
         organisation_contact: nouvelleOrganisationContact.value.trim() || null,
+        logo: iconeSelectionnee("icones-creation"),
       })
       .select()
       .single();
@@ -356,6 +441,7 @@
     nouvelleOrganisationNom.value = "";
     nouvelleOrganisationPresentation.value = "";
     nouvelleOrganisationContact.value = "";
+    definirIconeSelectionnee("icones-creation", null);
 
     if (refDepuisUrl && cleDepuisUrl) {
       const { error: erreurLiaison } = await supabaseClient.rpc("activer_reference_imprimee", {
@@ -381,8 +467,9 @@
   });
 
   function rendreLigneCarnet(carnet) {
+    const icone = carnet.logo ? carnet.logo + " " : "";
     return `<li>
-      <span class="lot-nom">${carnet.nom}<br><span class="discret">${formaterDate(carnet.date_tirage)}</span></span>
+      <span class="lot-nom">${icone}${carnet.nom}<br><span class="discret">${formaterDate(carnet.date_tirage)}</span></span>
       <button type="button" class="secondaire" data-carnet-id="${carnet.id}" data-carnet-nom="${carnet.nom}">Ouvrir</button>
     </li>`;
   }
@@ -398,7 +485,7 @@
   async function chargerMesCarnets() {
     const { data, error } = await supabaseClient
       .from("carnets")
-      .select("id, nom, date_tirage, archive")
+      .select("id, nom, date_tirage, archive, logo")
       .eq("organisateur_id", utilisateurCourant.id)
       .order("cree_le", { ascending: false });
 
@@ -436,7 +523,7 @@
 
     const { data: carnet } = await supabaseClient
       .from("carnets")
-      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, reference_imprimee, archive")
+      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, reference_imprimee, archive, logo")
       .eq("id", carnetId)
       .single();
     const referenceImprimee = carnet && carnet.reference_imprimee;
@@ -448,8 +535,10 @@
       modifOrganisationNom.value = carnet.organisation_nom || "";
       modifOrganisationPresentation.value = carnet.organisation_presentation || "";
       modifOrganisationContact.value = carnet.organisation_contact || "";
+      definirIconeSelectionnee("icones-modification", carnet.logo);
       carnetArchiveActuel = carnet.archive;
       boutonArchiverCarnet.textContent = carnetArchiveActuel ? "Désarchiver ce carnet" : "Archiver ce carnet";
+      titreDetailCarnet.textContent = (carnet.logo ? carnet.logo + " " : "") + nomCarnet;
     }
 
     // Un carnet relié à un lot déjà imprimé garde la référence choisie à
@@ -543,6 +632,7 @@
         organisation_nom: modifOrganisationNom.value.trim() || null,
         organisation_presentation: modifOrganisationPresentation.value.trim() || null,
         organisation_contact: modifOrganisationContact.value.trim() || null,
+        logo: iconeSelectionnee("icones-modification"),
       })
       .eq("id", carnetSelectionneId);
     boutonModifierCarnet.disabled = false;
@@ -553,7 +643,8 @@
     }
 
     afficherMessage(messageModification, "Modifications enregistrées.", "succes");
-    titreDetailCarnet.textContent = nom;
+    const iconeChoisie = iconeSelectionnee("icones-modification");
+    titreDetailCarnet.textContent = (iconeChoisie ? iconeChoisie + " " : "") + nom;
     chargerMesCarnets();
   });
 

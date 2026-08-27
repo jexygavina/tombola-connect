@@ -304,3 +304,30 @@ button.danger:hover {
   color: #7c8390;
   font-style: italic;
 }
+
+.grille-icones {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.grille-icones button {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  background: #fff;
+  border: 1.5px solid var(--couleur-bordure);
+  border-radius: var(--rayon-champ);
+  color: inherit;
+}
+
+.grille-icones button:hover {
+  background: #f3f5f8;
+}
+
+.grille-icones button.selectionne {
+  border-color: var(--couleur-accent);
+  background: #eaf1fe;
+}
