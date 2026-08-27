@@ -1,18 +1,27 @@
-/* Tombola Connect — styles communs aux 3 pages.
+/* Tombola Connect — styles communs à toutes les pages.
    Volontairement simple : pas de framework CSS, juste de quoi rester
    lisible sur un téléphone (les visiteurs consultent surtout depuis leur
-   téléphone, sur le lieu de la tombola). */
+   téléphone, sur le lieu de la tombola). Habillage à la marque Paperlin :
+   chaleureux (fond crème, accent terracotta, typo arrondie) mais net. */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap");
 
 :root {
-  --couleur-fond: #faf7f2;
+  --couleur-fond: #faf6ef;
   --couleur-texte: #2b2420;
-  --couleur-accent: #b5442e;
-  --couleur-accent-fonce: #8f3623;
+  --couleur-texte-marque: #171412;
+  --couleur-accent: #c1502f;
+  --couleur-accent-fonce: #9c3e23;
   --couleur-succes: #2e7d4f;
-  --couleur-erreur: #b5442e;
-  --couleur-bordure: #e2d9cc;
+  --couleur-erreur: #c1502f;
+  --couleur-info: #1f7fae;
+  --couleur-bordure: #e7ddcd;
   --couleur-carte: #ffffff;
-  --rayon: 10px;
+  --couleur-jaune-billet: #f7b731;
+  --couleur-jaune-billet-fond: #fff3d6;
+  --rayon: 16px;
+  --rayon-champ: 12px;
+  --ombre-carte: 0 1px 2px rgba(43, 36, 32, 0.04), 0 8px 24px rgba(43, 36, 32, 0.06);
 }
 
 * {
@@ -21,7 +30,7 @@
 
 body {
   margin: 0;
-  font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+  font-family: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
   background: var(--couleur-fond);
   color: var(--couleur-texte);
   line-height: 1.5;
@@ -30,7 +39,27 @@ body {
 .page {
   max-width: 640px;
   margin: 0 auto;
-  padding: 24px 16px 64px;
+  padding: 20px 16px 64px;
+}
+
+.marque-editeur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-bottom: 20px;
+  color: var(--couleur-texte-marque);
+}
+
+.marque-editeur svg {
+  width: 22px;
+  height: 18px;
+}
+
+.marque-editeur span {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 header.entete {
@@ -40,12 +69,14 @@ header.entete {
 
 header.entete h1 {
   margin: 0 0 4px;
-  font-size: 1.6rem;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--couleur-texte-marque);
 }
 
 header.entete p {
   margin: 0;
-  color: #6b6157;
+  color: #75695e;
 }
 
 a {
@@ -56,18 +87,21 @@ a {
   background: var(--couleur-carte);
   border: 1px solid var(--couleur-bordure);
   border-radius: var(--rayon);
-  padding: 20px;
+  box-shadow: var(--ombre-carte);
+  padding: 22px;
   margin-bottom: 20px;
 }
 
 .carte h2 {
   margin-top: 0;
   font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--couleur-texte-marque);
 }
 
 label {
   display: block;
-  font-weight: 600;
+  font-weight: 700;
   margin: 12px 0 4px;
 }
 
@@ -79,13 +113,20 @@ input[type="datetime-local"],
 textarea,
 select {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 14px;
   border: 1px solid var(--couleur-bordure);
-  border-radius: 6px;
+  border-radius: var(--rayon-champ);
   font-size: 1rem;
   font-family: inherit;
   background: #fff;
   color: var(--couleur-texte);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--couleur-accent);
+  outline-offset: 1px;
 }
 
 textarea {
@@ -96,39 +137,46 @@ textarea {
 button {
   cursor: pointer;
   border: none;
-  border-radius: 6px;
-  padding: 10px 18px;
+  border-radius: 999px;
+  padding: 10px 22px;
   font-size: 1rem;
-  font-weight: 600;
+  font-weight: 700;
+  font-family: inherit;
   background: var(--couleur-accent);
   color: #fff;
   margin-top: 14px;
+  transition: background-color 0.15s ease, transform 0.05s ease;
 }
 
 button:hover {
   background: var(--couleur-accent-fonce);
 }
 
+button:active {
+  transform: scale(0.98);
+}
+
 button:disabled {
-  background: #c9c0b3;
+  background: #d9cfc0;
   cursor: not-allowed;
+  transform: none;
 }
 
 button.secondaire {
   background: transparent;
   color: var(--couleur-accent);
-  border: 1px solid var(--couleur-accent);
+  border: 1.5px solid var(--couleur-accent);
 }
 
 button.secondaire:hover {
-  background: #f4e9e4;
+  background: #fbeee8;
 }
 
 .message {
   margin-top: 12px;
-  padding: 10px 14px;
-  border-radius: 6px;
-  font-weight: 600;
+  padding: 10px 16px;
+  border-radius: var(--rayon-champ);
+  font-weight: 700;
 }
 
 .message.succes {
@@ -137,13 +185,13 @@ button.secondaire:hover {
 }
 
 .message.erreur {
-  background: #fbe9e6;
+  background: #fbeae4;
   color: var(--couleur-erreur);
 }
 
 .message.info {
-  background: #eef1f6;
-  color: #3a4a63;
+  background: #e7f2f8;
+  color: var(--couleur-info);
 }
 
 .liste-lots {
@@ -157,7 +205,7 @@ button.secondaire:hover {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 12px 0;
+  padding: 14px 0;
   border-bottom: 1px solid var(--couleur-bordure);
 }
 
@@ -174,7 +222,7 @@ button.secondaire:hover {
   border-radius: 50%;
   background: var(--couleur-accent);
   color: #fff;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 0.85rem;
   flex-shrink: 0;
 }
@@ -185,10 +233,11 @@ button.secondaire:hover {
 
 .lot-gagnant {
   font-family: "Courier New", monospace;
-  font-weight: 700;
-  background: #fff3d6;
-  padding: 2px 8px;
-  border-radius: 4px;
+  font-weight: 800;
+  background: var(--couleur-jaune-billet-fond);
+  border: 1.5px solid var(--couleur-jaune-billet);
+  padding: 2px 10px;
+  border-radius: 999px;
 }
 
 .lot-en-attente {
