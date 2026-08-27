@@ -9,8 +9,12 @@ alter table carnets
   add column logo text;
 
 -- carnet_public() doit renvoyer cette nouvelle colonne, en plus de celles
--- déjà exposées publiquement.
-create or replace function carnet_public(p_id uuid default null, p_reference text default null)
+-- déjà exposées publiquement. Postgres n'autorise pas d'ajouter une colonne
+-- de sortie à une fonction existante par un simple CREATE OR REPLACE : il
+-- faut d'abord la supprimer.
+drop function if exists carnet_public(uuid, text);
+
+create function carnet_public(p_id uuid default null, p_reference text default null)
 returns table (
   id uuid,
   nom text,
@@ -34,3 +38,6 @@ as $$
   or (p_reference is not null and carnets.reference_imprimee = p_reference)
   limit 1;
 $$;
+
+-- Le DROP FUNCTION efface les droits d'exécution : on les redonne.
+grant execute on function carnet_public(uuid, text) to anon, authenticated;
