@@ -15,6 +15,7 @@
     </svg>
     <span>paperlin</span>
   </div>
+  <div class="accent-carres" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <header class="entete">
     <h1>Espace organisateur</h1>
     <p><a href="index.html">&larr; Retour à l'accueil</a></p>
@@ -617,7 +618,7 @@
               <span class="lot-rang">${lot.rang}</span>
               <span class="lot-nom">${lot.nom}</span>
               <button type="button" class="secondaire" data-modifier-lot="${lot.id}" data-nom-actuel="${lot.nom.replace(/"/g, "&quot;")}">Modifier</button>
-              <button type="button" class="secondaire" data-supprimer-lot="${lot.id}">Supprimer</button>
+              <button type="button" class="secondaire danger" data-supprimer-lot="${lot.id}">Supprimer</button>
             </li>`
           )
           .join("")
