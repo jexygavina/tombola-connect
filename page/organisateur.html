@@ -72,6 +72,24 @@
       </div>
 
       <div class="carte">
+        <h2>Modifier les informations du carnet</h2>
+        <label for="modif-nom">Nom de la tombola</label>
+        <input type="text" id="modif-nom" />
+        <label for="modif-description">Description (facultatif)</label>
+        <textarea id="modif-description"></textarea>
+        <label for="modif-date">Date et heure du tirage (facultatif)</label>
+        <input type="datetime-local" id="modif-date" />
+        <label for="modif-organisation-nom">Nom de l'association / organisation (facultatif)</label>
+        <input type="text" id="modif-organisation-nom" />
+        <label for="modif-organisation-presentation">Présentation de l'organisation (facultatif)</label>
+        <textarea id="modif-organisation-presentation"></textarea>
+        <label for="modif-organisation-contact">Contact / site web (facultatif)</label>
+        <input type="text" id="modif-organisation-contact" />
+        <button type="button" id="bouton-modifier-carnet">Enregistrer les modifications</button>
+        <div id="message-modification" class="message" hidden></div>
+      </div>
+
+      <div class="carte">
         <h2>Lot de billets déjà imprimé</h2>
         <p id="lot-imprime-relie" class="discret" hidden>Ce carnet est relié au lot imprimé <strong id="lot-imprime-reference"></strong>.</p>
         <div id="lot-imprime-formulaire">
@@ -154,6 +172,15 @@
   const messageQrCode = document.getElementById("message-qrcode");
   const boutonTelechargerQrCode = document.getElementById("bouton-telecharger-qrcode");
   let instanceQrCode = null;
+
+  const modifNom = document.getElementById("modif-nom");
+  const modifDescription = document.getElementById("modif-description");
+  const modifDate = document.getElementById("modif-date");
+  const modifOrganisationNom = document.getElementById("modif-organisation-nom");
+  const modifOrganisationPresentation = document.getElementById("modif-organisation-presentation");
+  const modifOrganisationContact = document.getElementById("modif-organisation-contact");
+  const boutonModifierCarnet = document.getElementById("bouton-modifier-carnet");
+  const messageModification = document.getElementById("message-modification");
 
   const lotImprimeRelie = document.getElementById("lot-imprime-relie");
   const lotImprimeReference = document.getElementById("lot-imprime-reference");
@@ -361,10 +388,19 @@
 
     const { data: carnet } = await supabaseClient
       .from("carnets")
-      .select("reference_imprimee")
+      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, reference_imprimee")
       .eq("id", carnetId)
       .single();
     const referenceImprimee = carnet && carnet.reference_imprimee;
+
+    if (carnet) {
+      modifNom.value = carnet.nom || "";
+      modifDescription.value = carnet.description || "";
+      modifDate.value = versValeurDatetimeLocal(carnet.date_tirage);
+      modifOrganisationNom.value = carnet.organisation_nom || "";
+      modifOrganisationPresentation.value = carnet.organisation_presentation || "";
+      modifOrganisationContact.value = carnet.organisation_contact || "";
+    }
 
     // Un carnet relié à un lot déjà imprimé garde la référence choisie à
     // l'impression (le QR papier ne change jamais) ; sinon on retombe sur
@@ -410,6 +446,47 @@
     chargerNombreBillets();
     zoneDetailCarnet.scrollIntoView({ behavior: "smooth" });
   }
+
+  // Convertit une date ISO (telle que stockée en base) vers le format
+  // attendu par un champ <input type="datetime-local"> (heure locale,
+  // sans fuseau) — l'inverse de ce que fait la création du carnet.
+  function versValeurDatetimeLocal(dateIso) {
+    if (!dateIso) return "";
+    const date = new Date(dateIso);
+    const decalageMs = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - decalageMs).toISOString().slice(0, 16);
+  }
+
+  boutonModifierCarnet.addEventListener("click", async () => {
+    const nom = modifNom.value.trim();
+    if (!nom) {
+      afficherMessage(messageModification, "Le nom de la tombola ne peut pas être vide.", "erreur");
+      return;
+    }
+
+    boutonModifierCarnet.disabled = true;
+    const { error } = await supabaseClient
+      .from("carnets")
+      .update({
+        nom,
+        description: modifDescription.value.trim() || null,
+        date_tirage: modifDate.value ? new Date(modifDate.value).toISOString() : null,
+        organisation_nom: modifOrganisationNom.value.trim() || null,
+        organisation_presentation: modifOrganisationPresentation.value.trim() || null,
+        organisation_contact: modifOrganisationContact.value.trim() || null,
+      })
+      .eq("id", carnetSelectionneId);
+    boutonModifierCarnet.disabled = false;
+
+    if (error) {
+      afficherMessage(messageModification, "Impossible d'enregistrer ces modifications, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageModification, "Modifications enregistrées.", "succes");
+    titreDetailCarnet.textContent = nom;
+    chargerMesCarnets();
+  });
 
   boutonTelechargerQrCode.addEventListener("click", () => {
     // Selon le navigateur, la bibliothèque dessine le QR code sur un
@@ -471,12 +548,46 @@
             (lot) => `<li>
               <span class="lot-rang">${lot.rang}</span>
               <span class="lot-nom">${lot.nom}</span>
+              <button type="button" class="secondaire" data-modifier-lot="${lot.id}" data-nom-actuel="${lot.nom.replace(/"/g, "&quot;")}">Modifier</button>
+              <button type="button" class="secondaire" data-supprimer-lot="${lot.id}">Supprimer</button>
             </li>`
           )
           .join("")
       : '<li class="discret">Aucun lot ajouté pour l\'instant.</li>';
 
+    listeLotsOrganisateur.querySelectorAll("button[data-modifier-lot]").forEach((bouton) => {
+      bouton.addEventListener("click", () => modifierLot(bouton.dataset.modifierLot, bouton.dataset.nomActuel));
+    });
+    listeLotsOrganisateur.querySelectorAll("button[data-supprimer-lot]").forEach((bouton) => {
+      bouton.addEventListener("click", () => supprimerLot(bouton.dataset.supprimerLot));
+    });
+
     afficherListeTirage(data);
+  }
+
+  async function modifierLot(lotId, nomActuel) {
+    const nouveauNomLot = prompt("Nouveau nom du lot :", nomActuel);
+    if (nouveauNomLot === null) return;
+    const nomNettoye = nouveauNomLot.trim();
+    if (!nomNettoye) return;
+
+    const { error } = await supabaseClient.from("lots").update({ nom: nomNettoye }).eq("id", lotId);
+    if (error) {
+      afficherMessage(messageLot, "Impossible de modifier ce lot, réessayez.", "erreur");
+      return;
+    }
+    chargerLots();
+  }
+
+  async function supprimerLot(lotId) {
+    if (!confirm("Supprimer ce lot ? Cette action est définitive.")) return;
+
+    const { error } = await supabaseClient.from("lots").delete().eq("id", lotId);
+    if (error) {
+      afficherMessage(messageLot, "Impossible de supprimer ce lot, réessayez.", "erreur");
+      return;
+    }
+    chargerLots();
   }
 
   boutonAjouterLot.addEventListener("click", async () => {

@@ -114,7 +114,10 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
    vous le souhaitez le nom, la présentation et le contact de l'association
    qui organise — ces informations s'affichent sur la page publique du
    carnet).
-3. Ajoutez les lots, du plus important (rang 1) au dernier.
+3. Ajoutez les lots, du plus important (rang 1) au dernier. Une erreur de
+   frappe ? Chaque lot peut être renommé ou supprimé depuis la liste, et le
+   carnet lui-même (nom, description, dates, infos d'organisation) peut être
+   modifié à tout moment via « Modifier les informations du carnet ».
 4. Enregistrez les codes des billets déjà imprimés : soit une plage (par
    exemple préfixe `A-`, de `1` à `500`), soit une liste collée depuis un
    fichier de votre imprimeur.
