@@ -18,99 +18,25 @@
   <div class="accent-carres" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <header class="entete">
     <h1>🎟️ Tombola Connect</h1>
-    <p>Vos carnets de tombola papier, avec un suivi en ligne du tirage.</p>
+    <p>Le suivi en ligne de vos carnets de tombola papier — sans jamais demander de données personnelles.</p>
   </header>
 
+  <p class="discret" style="text-align:center; margin: -12px 0 8px">Vous êtes ici pour...</p>
+
   <div class="carte">
-    <h2>Vous organisez une tombola ?</h2>
+    <h2>🎫 Vérifier un billet</h2>
+    <p>
+      Chaque tombola a sa propre page : utilisez le lien ou scannez le QR code fourni par l'organisateur
+      (imprimé sur votre billet ou partagé par l'association) pour voir les lots et vérifier votre code —
+      seul le code du billet est demandé, jamais votre nom ni votre e-mail.
+    </p>
+  </div>
+
+  <div class="carte">
+    <h2>🗂️ Organiser une tombola</h2>
     <p>Créez votre carnet, enregistrez les codes déjà imprimés sur vos billets, et suivez le tirage en direct le jour J.</p>
     <a href="organisateur.html"><button type="button">Accéder à l'espace organisateur</button></a>
   </div>
-
-  <div class="carte">
-    <h2>Vérifier un billet</h2>
-    <p class="discret">Aucune information personnelle n'est demandée : indiquez simplement la tombola et le code inscrit sur votre billet.</p>
-
-    <label for="select-carnet">Tombola</label>
-    <select id="select-carnet">
-      <option value="">Chargement des tombolas…</option>
-    </select>
-
-    <label for="champ-code">Code du billet</label>
-    <input type="text" id="champ-code" placeholder="Ex : A-00123" autocomplete="off" />
-
-    <button type="button" id="bouton-verifier">Vérifier mon billet</button>
-
-    <div id="message-verification" class="message" hidden></div>
-  </div>
-
-  <p class="discret" style="text-align:center">
-    Envie de voir le détail d'une tombola (lots à gagner, résultats) ? Utilisez le lien fourni par l'organisateur.
-  </p>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="../assets/tombola.js"></script>
-<script>
-  const selectCarnet = document.getElementById("select-carnet");
-  const champCode = document.getElementById("champ-code");
-  const boutonVerifier = document.getElementById("bouton-verifier");
-  const messageVerification = document.getElementById("message-verification");
-
-  // On liste les tombolas existantes pour permettre de choisir la bonne :
-  // un même visiteur peut avoir des billets de plusieurs tombolas différentes.
-  async function chargerCarnets() {
-    const { data, error } = await supabaseClient
-      .from("carnets")
-      .select("id, nom, date_tirage")
-      .order("cree_le", { ascending: false });
-
-    if (error || !data || data.length === 0) {
-      selectCarnet.innerHTML = '<option value="">Aucune tombola disponible pour le moment</option>';
-      return;
-    }
-
-    selectCarnet.innerHTML = data
-      .map((carnet) => `<option value="${carnet.id}">${carnet.nom}</option>`)
-      .join("");
-  }
-
-  boutonVerifier.addEventListener("click", async () => {
-    const carnetId = selectCarnet.value;
-    const code = champCode.value.trim();
-
-    if (!carnetId) {
-      afficherMessage(messageVerification, "Choisissez d'abord la tombola concernée.", "erreur");
-      return;
-    }
-    if (!code) {
-      afficherMessage(messageVerification, "Indiquez le code inscrit sur votre billet.", "erreur");
-      return;
-    }
-
-    boutonVerifier.disabled = true;
-    const { data, error } = await supabaseClient.rpc("verifier_billet", {
-      p_carnet_id: carnetId,
-      p_code: code,
-    });
-    boutonVerifier.disabled = false;
-
-    if (error) {
-      afficherMessage(messageVerification, "Une erreur est survenue, réessayez.", "erreur");
-      return;
-    }
-
-    const resultat = data && data[0];
-    if (!resultat || !resultat.existe) {
-      afficherMessage(messageVerification, "Ce code n'est pas enregistré pour cette tombola.", "erreur");
-    } else if (resultat.gagnant) {
-      afficherMessage(messageVerification, `🎉 Bravo, ce billet a gagné : ${resultat.nom_lot} (lot n°${resultat.rang}) !`, "succes");
-    } else {
-      afficherMessage(messageVerification, "Ce billet est bien enregistré. Le tirage n'a pas (encore) désigné ce billet comme gagnant.", "info");
-    }
-  });
-
-  chargerCarnets();
-</script>
 </body>
 </html>

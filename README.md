@@ -80,6 +80,8 @@ requête = un clic sur Run) :
 8. [`0008_exclusion_billets.sql`](supabase/migrations/0008_exclusion_billets.sql) —
    permet d'exclure un billet abîmé ou perdu du tirage au sort, sans le
    supprimer.
+9. [`0009_confidentialite_carnets.sql`](supabase/migrations/0009_confidentialite_carnets.sql) —
+   empêche de lister tous les carnets de la plateforme (voir plus bas).
 
 Ne relancez pas un script déjà exécuté sur le même projet : chacun n'est
 prévu que pour une seule application. Si vous ajoutez ce dépôt à un nouveau
@@ -192,10 +194,18 @@ son lien public utilise alors son identifiant technique
   plutôt que d'attribuer un même billet à deux lots. Mieux vaut ajuster le
   nombre de lots ou enregistrer davantage de billets que de forcer un
   tirage incohérent.
-- **Vérification d'un billet depuis l'accueil** : comme la page d'accueil
-  ne connaît pas de carnet en particulier, un menu déroulant permet de
-  choisir la tombola avant de saisir le code. Depuis la page publique d'un
-  carnet (le lien partagé par l'organisateur), ce choix n'est pas nécessaire.
+- **Pas de vérification de billet depuis l'accueil** : l'accueil ne
+  propose plus de choisir une tombola dans une liste déroulante (ça
+  aurait révélé le nom de toutes les tombolas de toutes les associations
+  utilisant la plateforme, pas seulement les vôtres). La vérification d'un
+  billet se fait uniquement depuis la page publique du carnet concerné,
+  via le lien ou le QR code fourni par l'organisateur.
+- **Aucun carnet listable publiquement** : ni la base de données ni
+  aucune page ne permettent de récupérer la liste de tous les carnets
+  existants. Un carnet n'est consultable que si l'on connaît déjà son
+  lien précis (identifiant technique ou référence imprimée) — jamais par
+  une recherche ou un parcours de la liste complète, même via un appel
+  direct à Supabase.
 - **Deux QR codes distincts pour les billets pré-imprimés** : le QR des
   billets (public) et le QR d'activation (couverture, secret) portent des
   informations différentes, pour qu'un acheteur ne puisse jamais configurer

@@ -58,3 +58,9 @@ avant de fusionner reste nécessaire.
   `SELECT` public direct sur la table des billets : ça empêche l'énumération
   en masse des codes. Le tirage au sort a lieu côté base, réservé à
   l'organisateur propriétaire du carnet.
+- Même principe pour la table des carnets : aucune policy publique ne doit
+  permettre de lister tous les carnets de la plateforme (plusieurs
+  associations différentes utilisent ce produit, l'une ne doit jamais voir
+  la liste des tombolas des autres). La consultation d'un carnet précis
+  passe par la fonction RPC `carnet_public`, jamais par un `SELECT`
+  public direct sur la table.

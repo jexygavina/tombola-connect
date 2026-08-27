@@ -78,11 +78,14 @@
   }
 
   async function chargerEnTete() {
-    const { data, error } = await supabaseClient
-      .from("carnets")
-      .select("id, nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact")
-      .eq(identifiant.colonne, identifiant.valeur)
-      .single();
+    // Passe toujours par la fonction RPC carnet_public, jamais par un
+    // SELECT direct sur la table : elle ne renvoie qu'un seul carnet,
+    // précisément identifié, jamais la liste de toutes les tombolas.
+    const { data: lignes, error } = await supabaseClient.rpc("carnet_public", {
+      p_id: identifiant.colonne === "id" ? identifiant.valeur : null,
+      p_reference: identifiant.colonne === "reference_imprimee" ? identifiant.valeur : null,
+    });
+    const data = lignes && lignes[0];
 
     if (error || !data) {
       titreCarnet.textContent = "Tombola introuvable";
