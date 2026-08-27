@@ -51,7 +51,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="../assets/tombola.js"></script>
 <script>
-  const ADRESSE_ADMINISTRATEUR = "jexy.gavina@protonmail.com";
+  const ADRESSES_ADMINISTRATEUR = ["jexy.gavina@protonmail.com", "jexy.gavina@gmail.com"];
 
   const carteConnexion = document.getElementById("carte-connexion");
   const champEmail = document.getElementById("champ-email");
@@ -103,7 +103,7 @@
 
     carteConnexion.hidden = true;
 
-    if (utilisateur.email !== ADRESSE_ADMINISTRATEUR) {
+    if (!ADRESSES_ADMINISTRATEUR.includes(utilisateur.email)) {
       carteRefus.hidden = false;
       zoneGeneration.hidden = true;
       return;
