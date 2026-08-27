@@ -72,6 +72,14 @@ requête = un clic sur Run) :
 5. [`0005_generer_lots_imprimes.sql`](supabase/migrations/0005_generer_lots_imprimes.sql) —
    ajoute l'outil (page `impression.html`) qui prépare de nouveaux lots
    avant l'impression.
+6. [`0006_deuxieme_administrateur.sql`](supabase/migrations/0006_deuxieme_administrateur.sql) —
+   reconnaît une deuxième adresse e-mail administrateur pour cet outil.
+7. [`0007_archivage_carnet.sql`](supabase/migrations/0007_archivage_carnet.sql) —
+   permet d'archiver un carnet terminé pour l'écarter de la liste
+   principale.
+8. [`0008_exclusion_billets.sql`](supabase/migrations/0008_exclusion_billets.sql) —
+   permet d'exclure un billet abîmé ou perdu du tirage au sort, sans le
+   supprimer.
 
 Ne relancez pas un script déjà exécuté sur le même projet : chacun n'est
 prévu que pour une seule application. Si vous ajoutez ce dépôt à un nouveau
@@ -120,7 +128,10 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
    modifié à tout moment via « Modifier les informations du carnet ».
 4. Enregistrez les codes des billets déjà imprimés : soit une plage (par
    exemple préfixe `A-`, de `1` à `500`), soit une liste collée depuis un
-   fichier de votre imprimeur.
+   fichier de votre imprimeur. Un billet abîmé, perdu ou déchiré avant le
+   tirage ? Indiquez son code dans « Exclure un billet du tirage » : il
+   reste enregistré (un acheteur peut toujours vérifier son code) mais ne
+   pourra plus être tiré au sort. Réintégrable à tout moment.
 5. Partagez le lien public du carnet (affiché dans l'espace organisateur)
    avec les acheteurs de billets, ou téléchargez le QR code fourni juste en
    dessous et faites-le imprimer sur les billets par votre imprimeur : un
@@ -129,6 +140,11 @@ exact est affiché dans l'espace organisateur une fois le carnet créé).
    sur « Tirer ce lot » pour chaque lot, dans l'ordre de votre choix. Les
    visiteurs qui regardent la page publique voient les gagnants apparaître
    en direct, sans recharger la page.
+7. Une fois la tombola terminée, cliquez sur « Archiver ce carnet » pour le
+   sortir de votre liste principale (« Mes carnets ») sans rien changer
+   pour le public ni pour les billets déjà enregistrés. Un carnet archivé
+   reste consultable dans la section « Carnets archivés », et peut être
+   désarchivé à tout moment.
 
 ## Billets pré-imprimés avec QR code
 

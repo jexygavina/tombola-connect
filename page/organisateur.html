@@ -58,6 +58,11 @@
       <ul class="liste-lots" id="liste-carnets"></ul>
     </div>
 
+    <div class="carte" id="carte-carnets-archives" hidden>
+      <h2>Carnets archivés</h2>
+      <ul class="liste-lots" id="liste-carnets-archives"></ul>
+    </div>
+
     <!-- Détail d'un carnet sélectionné -->
     <div id="zone-detail-carnet" hidden>
       <div class="carte">
@@ -87,6 +92,11 @@
         <input type="text" id="modif-organisation-contact" />
         <button type="button" id="bouton-modifier-carnet">Enregistrer les modifications</button>
         <div id="message-modification" class="message" hidden></div>
+
+        <p class="discret" style="margin-top:20px">
+          Archiver une tombola terminée la sort de la liste principale, sans rien changer pour le public.
+        </p>
+        <button type="button" class="secondaire" id="bouton-archiver-carnet">Archiver ce carnet</button>
       </div>
 
       <div class="carte">
@@ -129,6 +139,14 @@
         <button type="button" id="bouton-enregistrer-liste">Enregistrer cette liste</button>
 
         <div id="message-billets" class="message" hidden></div>
+
+        <label for="champ-exclure-code">Exclure un billet du tirage (ex : billet abîmé)</label>
+        <div class="barre-actions">
+          <input type="text" id="champ-exclure-code" placeholder="Code du billet" />
+          <button type="button" id="bouton-exclure-billet">Exclure ce billet</button>
+        </div>
+        <p class="discret">Billets actuellement exclus :</p>
+        <ul class="liste-lots" id="liste-billets-exclus"></ul>
       </div>
 
       <div class="carte">
@@ -164,6 +182,8 @@
 
   const listeCarnets = document.getElementById("liste-carnets");
   const messagePasDeCarnets = document.getElementById("message-pas-de-carnets");
+  const carteCarnetsArchives = document.getElementById("carte-carnets-archives");
+  const listeCarnetsArchives = document.getElementById("liste-carnets-archives");
 
   const zoneDetailCarnet = document.getElementById("zone-detail-carnet");
   const titreDetailCarnet = document.getElementById("titre-detail-carnet");
@@ -181,6 +201,8 @@
   const modifOrganisationContact = document.getElementById("modif-organisation-contact");
   const boutonModifierCarnet = document.getElementById("bouton-modifier-carnet");
   const messageModification = document.getElementById("message-modification");
+  const boutonArchiverCarnet = document.getElementById("bouton-archiver-carnet");
+  let carnetArchiveActuel = false;
 
   const lotImprimeRelie = document.getElementById("lot-imprime-relie");
   const lotImprimeReference = document.getElementById("lot-imprime-reference");
@@ -203,6 +225,9 @@
   const listeCodesCollee = document.getElementById("liste-codes-collee");
   const boutonEnregistrerListe = document.getElementById("bouton-enregistrer-liste");
   const messageBillets = document.getElementById("message-billets");
+  const champExclureCode = document.getElementById("champ-exclure-code");
+  const boutonExclureBillet = document.getElementById("bouton-exclure-billet");
+  const listeBilletsExclus = document.getElementById("liste-billets-exclus");
 
   const listeTirage = document.getElementById("liste-tirage");
   const messageTirage = document.getElementById("message-tirage");
@@ -347,34 +372,49 @@
     ouvrirDetailCarnet(data.id, data.nom);
   });
 
-  async function chargerMesCarnets() {
-    const { data, error } = await supabaseClient
-      .from("carnets")
-      .select("id, nom, date_tirage")
-      .eq("organisateur_id", utilisateurCourant.id)
-      .order("cree_le", { ascending: false });
+  function rendreLigneCarnet(carnet) {
+    return `<li>
+      <span class="lot-nom">${carnet.nom}<br><span class="discret">${formaterDate(carnet.date_tirage)}</span></span>
+      <button type="button" class="secondaire" data-carnet-id="${carnet.id}" data-carnet-nom="${carnet.nom}">Ouvrir</button>
+    </li>`;
+  }
 
-    if (error || !data || data.length === 0) {
-      messagePasDeCarnets.hidden = false;
-      listeCarnets.innerHTML = "";
-      return;
-    }
-
-    messagePasDeCarnets.hidden = true;
-    listeCarnets.innerHTML = data
-      .map(
-        (carnet) => `<li>
-          <span class="lot-nom">${carnet.nom}<br><span class="discret">${formaterDate(carnet.date_tirage)}</span></span>
-          <button type="button" class="secondaire" data-carnet-id="${carnet.id}" data-carnet-nom="${carnet.nom}">Ouvrir</button>
-        </li>`
-      )
-      .join("");
-
-    listeCarnets.querySelectorAll("button[data-carnet-id]").forEach((bouton) => {
+  function activerBoutonsOuvrir(conteneur) {
+    conteneur.querySelectorAll("button[data-carnet-id]").forEach((bouton) => {
       bouton.addEventListener("click", () =>
         ouvrirDetailCarnet(bouton.dataset.carnetId, bouton.dataset.carnetNom)
       );
     });
+  }
+
+  async function chargerMesCarnets() {
+    const { data, error } = await supabaseClient
+      .from("carnets")
+      .select("id, nom, date_tirage, archive")
+      .eq("organisateur_id", utilisateurCourant.id)
+      .order("cree_le", { ascending: false });
+
+    if (error || !data) return;
+
+    const carnetsActifs = data.filter((carnet) => !carnet.archive);
+    const carnetsArchives = data.filter((carnet) => carnet.archive);
+
+    if (carnetsActifs.length === 0) {
+      messagePasDeCarnets.hidden = false;
+      listeCarnets.innerHTML = "";
+    } else {
+      messagePasDeCarnets.hidden = true;
+      listeCarnets.innerHTML = carnetsActifs.map(rendreLigneCarnet).join("");
+      activerBoutonsOuvrir(listeCarnets);
+    }
+
+    if (carnetsArchives.length === 0) {
+      carteCarnetsArchives.hidden = true;
+    } else {
+      carteCarnetsArchives.hidden = false;
+      listeCarnetsArchives.innerHTML = carnetsArchives.map(rendreLigneCarnet).join("");
+      activerBoutonsOuvrir(listeCarnetsArchives);
+    }
   }
 
   // ---------------------------------------------------------------------
@@ -388,7 +428,7 @@
 
     const { data: carnet } = await supabaseClient
       .from("carnets")
-      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, reference_imprimee")
+      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, reference_imprimee, archive")
       .eq("id", carnetId)
       .single();
     const referenceImprimee = carnet && carnet.reference_imprimee;
@@ -400,6 +440,8 @@
       modifOrganisationNom.value = carnet.organisation_nom || "";
       modifOrganisationPresentation.value = carnet.organisation_presentation || "";
       modifOrganisationContact.value = carnet.organisation_contact || "";
+      carnetArchiveActuel = carnet.archive;
+      boutonArchiverCarnet.textContent = carnetArchiveActuel ? "Désarchiver ce carnet" : "Archiver ce carnet";
     }
 
     // Un carnet relié à un lot déjà imprimé garde la référence choisie à
@@ -444,8 +486,27 @@
 
     chargerLots();
     chargerNombreBillets();
+    chargerBilletsExclus();
     zoneDetailCarnet.scrollIntoView({ behavior: "smooth" });
   }
+
+  boutonArchiverCarnet.addEventListener("click", async () => {
+    const nouvelEtat = !carnetArchiveActuel;
+    const { error } = await supabaseClient
+      .from("carnets")
+      .update({ archive: nouvelEtat })
+      .eq("id", carnetSelectionneId);
+
+    if (error) {
+      afficherMessage(messageModification, "Impossible de modifier l'archivage, réessayez.", "erreur");
+      return;
+    }
+
+    carnetArchiveActuel = nouvelEtat;
+    boutonArchiverCarnet.textContent = carnetArchiveActuel ? "Désarchiver ce carnet" : "Archiver ce carnet";
+    afficherMessage(messageModification, carnetArchiveActuel ? "Carnet archivé." : "Carnet désarchivé.", "succes");
+    chargerMesCarnets();
+  });
 
   // Convertit une date ISO (telle que stockée en base) vers le format
   // attendu par un champ <input type="datetime-local"> (heure locale,
@@ -633,6 +694,59 @@
       .eq("carnet_id", carnetSelectionneId);
     nombreBillets.textContent = count || 0;
   }
+
+  async function chargerBilletsExclus() {
+    const { data } = await supabaseClient
+      .from("billets")
+      .select("code")
+      .eq("carnet_id", carnetSelectionneId)
+      .eq("exclu", true)
+      .order("code");
+
+    if (!data || data.length === 0) {
+      listeBilletsExclus.innerHTML = '<li class="discret">Aucun billet exclu.</li>';
+      return;
+    }
+
+    listeBilletsExclus.innerHTML = data
+      .map(
+        (billet) => `<li>
+          <span class="lot-nom">${billet.code}</span>
+          <button type="button" class="secondaire" data-reinclure="${billet.code}">Réinclure</button>
+        </li>`
+      )
+      .join("");
+
+    listeBilletsExclus.querySelectorAll("button[data-reinclure]").forEach((bouton) => {
+      bouton.addEventListener("click", () => basculerExclusionBillet(bouton.dataset.reinclure, false));
+    });
+  }
+
+  async function basculerExclusionBillet(code, exclu) {
+    const { data, error } = await supabaseClient.rpc("exclure_billet", {
+      p_carnet_id: carnetSelectionneId,
+      p_code: code,
+      p_exclu: exclu,
+    });
+
+    if (error || !data) {
+      afficherMessage(messageBillets, "Ce code n'a pas été trouvé pour ce carnet.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageBillets, exclu ? "Billet exclu du tirage." : "Billet réintégré au tirage.", "succes");
+    chargerBilletsExclus();
+  }
+
+  boutonExclureBillet.addEventListener("click", () => {
+    const code = champExclureCode.value.trim();
+    if (!code) {
+      afficherMessage(messageBillets, "Indiquez le code du billet à exclure.", "erreur");
+      return;
+    }
+    basculerExclusionBillet(code, true);
+    champExclureCode.value = "";
+  });
 
   async function enregistrerCodes(codes) {
     if (codes.length === 0) {
