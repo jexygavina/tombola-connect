@@ -214,7 +214,14 @@ create policy "billets_modification_par_organisateur"
 -- 5. Fonctions à mettre à jour pour le nouveau schéma
 -- ============================================================================
 
-create or replace function verifier_billet(p_evenement_id uuid, p_code text)
+-- CREATE OR REPLACE FUNCTION refuse de renommer un paramètre existant
+-- (ERROR 42P13), même en gardant les mêmes types : il faut d'abord
+-- supprimer l'ancienne version (p_carnet_id) avant de recréer avec le
+-- nouveau nom (p_evenement_id). Le DROP efface les autorisations
+-- (grant execute) déjà en place : on les repose juste après.
+drop function if exists verifier_billet(uuid, text);
+
+create function verifier_billet(p_evenement_id uuid, p_code text)
 returns table (existe boolean, gagnant boolean, rang int, nom_lot text)
 language plpgsql
 security definer
@@ -243,7 +250,11 @@ begin
 end;
 $$;
 
-create or replace function resultats_carnet(p_evenement_id uuid)
+grant execute on function verifier_billet(uuid, text) to anon, authenticated;
+
+drop function if exists resultats_carnet(uuid);
+
+create function resultats_carnet(p_evenement_id uuid)
 returns table (rang int, nom_lot text, description text, code_gagnant text)
 language sql
 security definer
@@ -256,6 +267,8 @@ as $$
   where lots.evenement_id = p_evenement_id
   order by lots.rang;
 $$;
+
+grant execute on function resultats_carnet(uuid) to anon, authenticated;
 
 create or replace function effectuer_tirage(p_lot_id uuid)
 returns table (rang int, nom_lot text, code_gagnant text)
@@ -311,7 +324,9 @@ begin
 end;
 $$;
 
-create or replace function exclure_billet(p_evenement_id uuid, p_code text, p_exclu boolean)
+drop function if exists exclure_billet(uuid, text, boolean);
+
+create function exclure_billet(p_evenement_id uuid, p_code text, p_exclu boolean)
 returns boolean
 language plpgsql
 security definer
@@ -336,6 +351,8 @@ begin
   return v_nb_lignes > 0;
 end;
 $$;
+
+grant execute on function exclure_billet(uuid, text, boolean) to authenticated;
 
 -- carnet_public() cherchait un événement par id ou par reference_imprimee
 -- (colonne supprimée) : elle cherche maintenant uniquement par id. La
