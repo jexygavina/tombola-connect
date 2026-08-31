@@ -157,6 +157,11 @@ alter table billets
   add column carnet_physique_id uuid references carnets_physiques(id) on delete cascade,
   add column evenement_id uuid references evenements(id);
 
+-- La policy existante référence carnet_id : il faut la supprimer avant de
+-- pouvoir supprimer cette colonne (sinon Postgres refuse le DROP COLUMN,
+-- l'objet en dépendant encore).
+drop policy if exists "billets_gestion_par_organisateur" on billets;
+
 -- L'ancienne colonne carnet_id (l'événement) n'a plus de sens : un billet
 -- appartient d'abord à un carnet physique, et n'est rattaché à un
 -- événement qu'une fois ce carnet activé (evenement_id, rempli par
@@ -173,8 +178,6 @@ alter table billets add constraint billets_carnet_physique_code_uniq unique (car
 -- unique (deux carnets physiques activés sur le même événement ne
 -- doivent jamais se chevaucher).
 create unique index billets_evenement_code_uniq on billets (evenement_id, code) where evenement_id is not null;
-
-drop policy if exists "billets_gestion_par_organisateur" on billets;
 
 create policy "billets_lecture_par_organisateur"
   on billets for select
