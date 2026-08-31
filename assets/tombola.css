@@ -1,0 +1,360 @@
+/* Tombola Connect — styles communs à toutes les pages.
+   Volontairement simple : pas de framework CSS, juste de quoi rester
+   lisible sur un téléphone (les visiteurs consultent surtout depuis leur
+   téléphone, sur le lieu de la tombola). Habillage à la marque Paperlin :
+   bleu comme couleur principale, touches de couleurs vives (reprises des
+   tickets imprimés) sur les repères numérotés, plutôt qu'une seule teinte
+   partout. */
+
+@import url("https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap");
+
+:root {
+  --couleur-fond: #f7f8fa;
+  --couleur-texte: #24272b;
+  --couleur-texte-marque: #14161a;
+  --couleur-accent: #2f6fed;
+  --couleur-accent-fonce: #1f56c4;
+  --couleur-succes: #1f9d63;
+  --couleur-erreur: #e0453a;
+  --couleur-info: #2f6fed;
+  --couleur-bordure: #e4e7ec;
+  --couleur-carte: #ffffff;
+  --couleur-jaune-billet: #f7b731;
+  --couleur-jaune-billet-fond: #fff3d6;
+
+  /* Le "carré coloré" : quatre teintes reprises des tickets imprimés,
+     utilisées pour distinguer visuellement une série d'éléments (lots,
+     billets...) sans tout peindre en bleu. */
+  --carre-1: #2f6fed;
+  --carre-2: #f2b134;
+  --carre-3: #e85d75;
+  --carre-4: #17b3a3;
+
+  --rayon: 16px;
+  --rayon-champ: 12px;
+  --ombre-carte: 0 1px 2px rgba(20, 22, 26, 0.04), 0 8px 24px rgba(20, 22, 26, 0.06);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Nunito", "Segoe UI", system-ui, -apple-system, sans-serif;
+  background: var(--couleur-fond);
+  color: var(--couleur-texte);
+  line-height: 1.5;
+}
+
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 20px 16px 64px;
+}
+
+.marque-editeur {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--couleur-texte-marque);
+}
+
+.marque-editeur svg {
+  width: 22px;
+  height: 18px;
+}
+
+.marque-editeur span {
+  font-size: 1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.accent-carres {
+  display: flex;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 24px;
+}
+
+.accent-carres span {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+}
+
+.accent-carres span:nth-child(1) { background: var(--carre-1); }
+.accent-carres span:nth-child(2) { background: var(--carre-2); }
+.accent-carres span:nth-child(3) { background: var(--carre-3); }
+.accent-carres span:nth-child(4) { background: var(--carre-4); }
+
+header.entete {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+header.entete h1 {
+  margin: 0 0 4px;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--couleur-texte-marque);
+}
+
+header.entete p {
+  margin: 0;
+  color: #666d78;
+}
+
+a {
+  color: var(--couleur-accent);
+}
+
+.carte {
+  background: var(--couleur-carte);
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-carte);
+  padding: 22px;
+  margin-bottom: 20px;
+}
+
+.carte h2 {
+  margin-top: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--couleur-texte-marque);
+}
+
+label {
+  display: block;
+  font-weight: 700;
+  margin: 12px 0 4px;
+}
+
+input[type="text"],
+input[type="email"],
+input[type="number"],
+input[type="date"],
+input[type="datetime-local"],
+textarea,
+select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--couleur-bordure);
+  border-radius: var(--rayon-champ);
+  font-size: 1rem;
+  font-family: inherit;
+  background: #fff;
+  color: var(--couleur-texte);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: 2px solid var(--couleur-accent);
+  outline-offset: 1px;
+}
+
+textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  border-radius: 999px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  font-weight: 700;
+  font-family: inherit;
+  background: var(--couleur-accent);
+  color: #fff;
+  margin-top: 14px;
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+button:hover {
+  background: var(--couleur-accent-fonce);
+}
+
+button:active {
+  transform: scale(0.98);
+}
+
+button:disabled {
+  background: #c7ccd4;
+  cursor: not-allowed;
+  transform: none;
+}
+
+button.secondaire {
+  background: transparent;
+  color: var(--couleur-accent);
+  border: 1.5px solid var(--couleur-accent);
+}
+
+button.secondaire:hover {
+  background: #eaf1fe;
+}
+
+button.danger {
+  color: var(--couleur-erreur);
+  border-color: var(--couleur-erreur);
+}
+
+button.danger:hover {
+  background: #fbeae8;
+}
+
+.message {
+  margin-top: 12px;
+  padding: 10px 16px;
+  border-radius: var(--rayon-champ);
+  font-weight: 700;
+}
+
+.message.succes {
+  background: #e4f5ec;
+  color: var(--couleur-succes);
+}
+
+.message.erreur {
+  background: #fbe8e6;
+  color: var(--couleur-erreur);
+}
+
+.message.info {
+  background: #e9f0fe;
+  color: var(--couleur-info);
+}
+
+.liste-lots {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.liste-lots li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+  border-bottom: 1px solid var(--couleur-bordure);
+}
+
+.liste-lots li:last-child {
+  border-bottom: none;
+}
+
+.lot-rang {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--carre-1);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+}
+
+/* Un carré de couleur différente par ligne, en boucle sur 4 teintes :
+   un simple repère visuel pour distinguer les lots d'un coup d'œil. */
+.liste-lots li:nth-child(4n+2) .lot-rang { background: var(--carre-2); }
+.liste-lots li:nth-child(4n+3) .lot-rang { background: var(--carre-3); }
+.liste-lots li:nth-child(4n+4) .lot-rang { background: var(--carre-4); }
+
+.lot-nom {
+  flex: 1;
+}
+
+.lot-gagnant {
+  font-family: "Courier New", monospace;
+  font-weight: 800;
+  background: var(--couleur-jaune-billet-fond);
+  border: 1.5px solid var(--couleur-jaune-billet);
+  padding: 2px 10px;
+  border-radius: 999px;
+}
+
+.lot-en-attente {
+  color: #7c8390;
+  font-style: italic;
+  font-size: 0.9rem;
+}
+
+.discret {
+  color: #7c8390;
+  font-size: 0.9rem;
+}
+
+.barre-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chargement {
+  color: #7c8390;
+  font-style: italic;
+}
+
+.grille-icones {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  margin: 8px 0 4px;
+}
+
+.grille-icones button {
+  margin: 0;
+  padding: 10px 0;
+  font-size: 1.3rem;
+  line-height: 1;
+  background: #fff;
+  border: 1.5px solid var(--couleur-bordure);
+  border-radius: var(--rayon-champ);
+  color: inherit;
+}
+
+.grille-icones button:hover {
+  background: #f3f5f8;
+}
+
+.grille-icones button.selectionne {
+  border-color: var(--couleur-accent);
+  background: #eaf1fe;
+}
+
+.superposition-scan {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 26, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  z-index: 100;
+}
+
+.superposition-scan p {
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  max-width: 320px;
+}
+
+.superposition-scan video {
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--rayon);
+  background: #000;
+}

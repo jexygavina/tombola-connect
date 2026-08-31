@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Tombola Connect — Espace organisateur</title>
+<link rel="stylesheet" href="../assets/tombola.css" />
+</head>
+<body>
+<div class="page">
+  <div class="marque-editeur">
+    <svg viewBox="0 0 40 32" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <rect x="6" y="8" width="16" height="16" rx="3" transform="rotate(45 14 16)" stroke="currentColor" stroke-width="3"/>
+      <rect x="18" y="8" width="16" height="16" rx="3" transform="rotate(45 26 16)" stroke="currentColor" stroke-width="3"/>
+    </svg>
+    <span>paperlin</span>
+  </div>
+  <div class="accent-carres" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+  <header class="entete">
+    <h1>Espace organisateur</h1>
+    <p><a href="index.html">&larr; Retour à l'accueil</a></p>
+  </header>
+
+  <!-- Connexion -->
+  <div class="carte" id="carte-connexion">
+    <h2>Connexion</h2>
+    <p class="discret">Pas de mot de passe à retenir : indiquez votre e-mail, vous recevrez un lien de connexion valable quelques minutes.</p>
+    <label for="champ-email">Adresse e-mail</label>
+    <input type="email" id="champ-email" placeholder="vous@exemple.fr" autocomplete="email" />
+    <button type="button" id="bouton-envoyer-lien">Recevoir le lien de connexion</button>
+    <div id="message-connexion" class="message" hidden></div>
+  </div>
+
+  <!-- Contenu réservé aux organisateurs connectés -->
+  <div id="zone-connectee" hidden>
+    <div class="carte">
+      <div class="barre-actions" style="justify-content:space-between">
+        <span id="texte-bienvenue"></span>
+        <button type="button" class="secondaire" id="bouton-deconnexion">Se déconnecter</button>
+      </div>
+    </div>
+
+    <div class="carte">
+      <h2>Créer un nouvel événement</h2>
+      <label for="nouveau-nom">Nom de la tombola</label>
+      <input type="text" id="nouveau-nom" placeholder="Ex : Tombola de la kermesse 2026" />
+      <label for="nouvelle-description">Description (facultatif)</label>
+      <textarea id="nouvelle-description" placeholder="Quelques mots sur votre tombola…"></textarea>
+      <label for="nouvelle-date">Date et heure du tirage (facultatif)</label>
+      <input type="datetime-local" id="nouvelle-date" />
+
+      <label for="nouvelle-organisation-nom">Nom de l'association / organisation (facultatif)</label>
+      <input type="text" id="nouvelle-organisation-nom" placeholder="Ex : Comité des fêtes de Villeneuve" />
+      <label for="nouvelle-organisation-presentation">Présentation de l'organisation (facultatif)</label>
+      <textarea id="nouvelle-organisation-presentation" placeholder="Qui vous êtes, votre mission, à quoi sert la collecte…"></textarea>
+      <label for="nouvelle-organisation-contact">Contact / site web (facultatif)</label>
+      <input type="text" id="nouvelle-organisation-contact" placeholder="Ex : contact@association.fr ou www.association.fr" />
+
+      <label>Icône de l'événement (facultatif)</label>
+      <div class="grille-icones" id="icones-creation" data-valeur="">
+        <button type="button" data-icone="🎉">🎉</button>
+        <button type="button" data-icone="🎈">🎈</button>
+        <button type="button" data-icone="🎁">🎁</button>
+        <button type="button" data-icone="🎟️">🎟️</button>
+        <button type="button" data-icone="🎫">🎫</button>
+        <button type="button" data-icone="⚽">⚽</button>
+        <button type="button" data-icone="🏀">🏀</button>
+        <button type="button" data-icone="🎾">🎾</button>
+        <button type="button" data-icone="🏸">🏸</button>
+        <button type="button" data-icone="🚲">🚲</button>
+        <button type="button" data-icone="✈️">✈️</button>
+        <button type="button" data-icone="🧳">🧳</button>
+        <button type="button" data-icone="🌴">🌴</button>
+        <button type="button" data-icone="🌊">🌊</button>
+        <button type="button" data-icone="🎄">🎄</button>
+        <button type="button" data-icone="🎃">🎃</button>
+        <button type="button" data-icone="🐰">🐰</button>
+        <button type="button" data-icone="🍷">🍷</button>
+        <button type="button" data-icone="📖">📖</button>
+        <button type="button" data-icone="⌚">⌚</button>
+      </div>
+
+      <button type="button" id="bouton-creer-evenement">Créer l'événement</button>
+      <div id="message-creation" class="message" hidden></div>
+    </div>
+
+    <div class="carte">
+      <h2>Mes événements</h2>
+      <p id="message-pas-d-evenements" class="discret" hidden>Vous n'avez pas encore créé d'événement.</p>
+      <ul class="liste-lots" id="liste-evenements"></ul>
+    </div>
+
+    <div class="carte" id="carte-evenements-archives" hidden>
+      <h2>Événements archivés</h2>
+      <ul class="liste-lots" id="liste-evenements-archives"></ul>
+    </div>
+
+    <!-- Détail d'un événement sélectionné -->
+    <div id="zone-detail-evenement" hidden>
+      <div class="carte">
+        <h2 id="titre-detail-evenement"></h2>
+        <p class="discret">Lien à partager avec les acheteurs de billets :</p>
+        <p><a id="lien-public-evenement" href="#" target="_blank"></a></p>
+
+        <p class="discret">Code QR : un scan amène directement sur cette page.</p>
+        <div id="qrcode-evenement"></div>
+        <p id="message-qrcode" class="message erreur" hidden>Le QR code n'a pas pu être généré. Essayez de recharger la page.</p>
+        <button type="button" class="secondaire" id="bouton-telecharger-qrcode">Télécharger l'image du QR code</button>
+      </div>
+
+      <div class="carte">
+        <h2>Modifier les informations de l'événement</h2>
+        <label for="modif-nom">Nom de la tombola</label>
+        <input type="text" id="modif-nom" />
+        <label for="modif-description">Description (facultatif)</label>
+        <textarea id="modif-description"></textarea>
+        <label for="modif-date">Date et heure du tirage (facultatif)</label>
+        <input type="datetime-local" id="modif-date" />
+        <label for="modif-organisation-nom">Nom de l'association / organisation (facultatif)</label>
+        <input type="text" id="modif-organisation-nom" />
+        <label for="modif-organisation-presentation">Présentation de l'organisation (facultatif)</label>
+        <textarea id="modif-organisation-presentation"></textarea>
+        <label for="modif-organisation-contact">Contact / site web (facultatif)</label>
+        <input type="text" id="modif-organisation-contact" />
+
+        <label>Icône de l'événement (facultatif)</label>
+        <div class="grille-icones" id="icones-modification" data-valeur="">
+          <button type="button" data-icone="🎉">🎉</button>
+          <button type="button" data-icone="🎈">🎈</button>
+          <button type="button" data-icone="🎁">🎁</button>
+          <button type="button" data-icone="🎟️">🎟️</button>
+          <button type="button" data-icone="🎫">🎫</button>
+          <button type="button" data-icone="⚽">⚽</button>
+          <button type="button" data-icone="🏀">🏀</button>
+          <button type="button" data-icone="🎾">🎾</button>
+          <button type="button" data-icone="🏸">🏸</button>
+          <button type="button" data-icone="🚲">🚲</button>
+          <button type="button" data-icone="✈️">✈️</button>
+          <button type="button" data-icone="🧳">🧳</button>
+          <button type="button" data-icone="🌴">🌴</button>
+          <button type="button" data-icone="🌊">🌊</button>
+          <button type="button" data-icone="🎄">🎄</button>
+          <button type="button" data-icone="🎃">🎃</button>
+          <button type="button" data-icone="🐰">🐰</button>
+          <button type="button" data-icone="🍷">🍷</button>
+          <button type="button" data-icone="📖">📖</button>
+          <button type="button" data-icone="⌚">⌚</button>
+        </div>
+
+        <button type="button" id="bouton-modifier-evenement">Enregistrer les modifications</button>
+        <div id="message-modification" class="message" hidden></div>
+
+        <p class="discret" style="margin-top:20px">
+          Archiver un événement terminé le sort de la liste principale, sans rien changer pour le public.
+        </p>
+        <button type="button" class="secondaire" id="bouton-archiver-evenement">Archiver cet événement</button>
+      </div>
+
+      <div class="carte">
+        <h2>Activer un carnet de billets</h2>
+        <p class="discret">
+          Vous avez un carnet de billets déjà imprimés (acheté par exemple sur Amazon) ? Entrez le code
+          d'activation inscrit sur sa couverture pour rattacher tous ses billets à cet événement. Un carnet ne
+          peut être activé qu'une seule fois, et seulement sur un événement à la fois.
+        </p>
+        <label for="champ-code-activation">Code d'activation du carnet</label>
+        <div class="barre-actions">
+          <input type="text" id="champ-code-activation" placeholder="Code inscrit sur la couverture du carnet" style="flex:1; min-width:180px" />
+          <button type="button" class="secondaire" id="bouton-scanner-qr" style="margin-top:0">📷 Scanner le QR</button>
+        </div>
+        <button type="button" id="bouton-activer-carnet">Activer ce carnet</button>
+        <div id="message-activation" class="message" hidden></div>
+      </div>
+
+      <div class="superposition-scan" id="superposition-scan" hidden>
+        <p>Pointez la caméra vers le QR imprimé sur la couverture du carnet.</p>
+        <video id="video-scan" playsinline autoplay muted></video>
+        <button type="button" class="secondaire" id="bouton-annuler-scan">Annuler</button>
+      </div>
+      <canvas id="canevas-scan" hidden></canvas>
+
+      <div class="carte">
+        <h2>Lots à gagner</h2>
+        <ul class="liste-lots" id="liste-lots-organisateur"></ul>
+        <label for="nouveau-lot-nom">Ajouter un lot</label>
+        <input type="text" id="nouveau-lot-nom" placeholder="Ex : Un panier garni" />
+        <button type="button" id="bouton-ajouter-lot">Ajouter ce lot</button>
+        <div id="message-lot" class="message" hidden></div>
+      </div>
+
+      <div class="carte">
+        <h2>Billets rattachés</h2>
+        <p class="discret"><span id="nombre-billets">0</span> billet(s) rattaché(s) à cet événement, via les carnets activés ci-dessus.</p>
+
+        <label for="champ-exclure-code">Exclure un billet du tirage (ex : billet abîmé)</label>
+        <div class="barre-actions">
+          <input type="text" id="champ-exclure-code" placeholder="Code du billet" />
+          <button type="button" id="bouton-exclure-billet">Exclure ce billet</button>
+        </div>
+        <p class="discret">Billets actuellement exclus :</p>
+        <ul class="liste-lots" id="liste-billets-exclus"></ul>
+        <div id="message-billets" class="message" hidden></div>
+      </div>
+
+      <div class="carte">
+        <h2>Tirage au sort</h2>
+        <p class="discret">Le jour du tirage, appuyez sur « Tirer ce lot » lot par lot. Un billet ne peut jamais gagner deux fois sur le même événement.</p>
+        <ul class="liste-lots" id="liste-tirage"></ul>
+        <div id="message-tirage" class="message" hidden></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
+<script src="../assets/tombola.js"></script>
+<script>
+  const carteConnexion = document.getElementById("carte-connexion");
+  const zoneConnectee = document.getElementById("zone-connectee");
+  const champEmail = document.getElementById("champ-email");
+  const boutonEnvoyerLien = document.getElementById("bouton-envoyer-lien");
+  const messageConnexion = document.getElementById("message-connexion");
+  const texteBienvenue = document.getElementById("texte-bienvenue");
+  const boutonDeconnexion = document.getElementById("bouton-deconnexion");
+
+  const nouveauNom = document.getElementById("nouveau-nom");
+  const nouvelleDescription = document.getElementById("nouvelle-description");
+  const nouvelleDate = document.getElementById("nouvelle-date");
+  const nouvelleOrganisationNom = document.getElementById("nouvelle-organisation-nom");
+  const nouvelleOrganisationPresentation = document.getElementById("nouvelle-organisation-presentation");
+  const nouvelleOrganisationContact = document.getElementById("nouvelle-organisation-contact");
+  const boutonCreerEvenement = document.getElementById("bouton-creer-evenement");
+  const messageCreation = document.getElementById("message-creation");
+
+  const listeEvenements = document.getElementById("liste-evenements");
+  const messagePasDEvenements = document.getElementById("message-pas-d-evenements");
+  const carteEvenementsArchives = document.getElementById("carte-evenements-archives");
+  const listeEvenementsArchives = document.getElementById("liste-evenements-archives");
+
+  const zoneDetailEvenement = document.getElementById("zone-detail-evenement");
+  const titreDetailEvenement = document.getElementById("titre-detail-evenement");
+  const lienPublicEvenement = document.getElementById("lien-public-evenement");
+  const conteneurQrCode = document.getElementById("qrcode-evenement");
+  const messageQrCode = document.getElementById("message-qrcode");
+  const boutonTelechargerQrCode = document.getElementById("bouton-telecharger-qrcode");
+  let instanceQrCode = null;
+
+  const modifNom = document.getElementById("modif-nom");
+  const modifDescription = document.getElementById("modif-description");
+  const modifDate = document.getElementById("modif-date");
+  const modifOrganisationNom = document.getElementById("modif-organisation-nom");
+  const modifOrganisationPresentation = document.getElementById("modif-organisation-presentation");
+  const modifOrganisationContact = document.getElementById("modif-organisation-contact");
+  const boutonModifierEvenement = document.getElementById("bouton-modifier-evenement");
+  const messageModification = document.getElementById("message-modification");
+  const boutonArchiverEvenement = document.getElementById("bouton-archiver-evenement");
+  let evenementArchiveActuel = false;
+
+  const champCodeActivation = document.getElementById("champ-code-activation");
+  const boutonActiverCarnet = document.getElementById("bouton-activer-carnet");
+  const messageActivation = document.getElementById("message-activation");
+  const boutonScannerQr = document.getElementById("bouton-scanner-qr");
+  const superpositionScan = document.getElementById("superposition-scan");
+  const videoScan = document.getElementById("video-scan");
+  const canevasScan = document.getElementById("canevas-scan");
+  const boutonAnnulerScan = document.getElementById("bouton-annuler-scan");
+
+  const listeLotsOrganisateur = document.getElementById("liste-lots-organisateur");
+  const nouveauLotNom = document.getElementById("nouveau-lot-nom");
+  const boutonAjouterLot = document.getElementById("bouton-ajouter-lot");
+  const messageLot = document.getElementById("message-lot");
+
+  const nombreBillets = document.getElementById("nombre-billets");
+  const champExclureCode = document.getElementById("champ-exclure-code");
+  const boutonExclureBillet = document.getElementById("bouton-exclure-billet");
+  const listeBilletsExclus = document.getElementById("liste-billets-exclus");
+  const messageBillets = document.getElementById("message-billets");
+
+  const listeTirage = document.getElementById("liste-tirage");
+  const messageTirage = document.getElementById("message-tirage");
+
+  let utilisateurCourant = null;
+  let evenementSelectionneId = null;
+
+  // ---------------------------------------------------------------------
+  // Grille d'icônes (création et modification d'un événement)
+  // ---------------------------------------------------------------------
+
+  function initialiserGrilleIcones(conteneurId) {
+    const conteneur = document.getElementById(conteneurId);
+    conteneur.querySelectorAll("button[data-icone]").forEach((bouton) => {
+      bouton.addEventListener("click", () => {
+        const etaitSelectionne = bouton.classList.contains("selectionne");
+        conteneur.querySelectorAll("button[data-icone]").forEach((b) => b.classList.remove("selectionne"));
+        if (etaitSelectionne) {
+          conteneur.dataset.valeur = "";
+        } else {
+          bouton.classList.add("selectionne");
+          conteneur.dataset.valeur = bouton.dataset.icone;
+        }
+      });
+    });
+  }
+
+  function iconeSelectionnee(conteneurId) {
+    return document.getElementById(conteneurId).dataset.valeur || null;
+  }
+
+  function definirIconeSelectionnee(conteneurId, valeur) {
+    const conteneur = document.getElementById(conteneurId);
+    conteneur.dataset.valeur = valeur || "";
+    conteneur.querySelectorAll("button[data-icone]").forEach((b) => {
+      b.classList.toggle("selectionne", b.dataset.icone === valeur);
+    });
+  }
+
+  initialiserGrilleIcones("icones-creation");
+  initialiserGrilleIcones("icones-modification");
+
+  // ---------------------------------------------------------------------
+  // Connexion / déconnexion
+  // ---------------------------------------------------------------------
+
+  boutonEnvoyerLien.addEventListener("click", async () => {
+    const email = champEmail.value.trim();
+    if (!email) {
+      afficherMessage(messageConnexion, "Indiquez votre adresse e-mail.", "erreur");
+      return;
+    }
+    boutonEnvoyerLien.disabled = true;
+    const { error } = await supabaseClient.auth.signInWithOtp({
+      email,
+      options: { emailRedirectTo: window.location.href },
+    });
+    boutonEnvoyerLien.disabled = false;
+
+    if (error) {
+      afficherMessage(messageConnexion, "Impossible d'envoyer le lien, réessayez.", "erreur");
+    } else {
+      afficherMessage(messageConnexion, "E-mail envoyé ! Cliquez sur le lien reçu pour vous connecter.", "succes");
+    }
+  });
+
+  boutonDeconnexion.addEventListener("click", async () => {
+    await supabaseClient.auth.signOut();
+  });
+
+  supabaseClient.auth.onAuthStateChange((_evt, session) => {
+    utilisateurCourant = session ? session.user : null;
+    if (utilisateurCourant) {
+      carteConnexion.hidden = true;
+      zoneConnectee.hidden = false;
+      texteBienvenue.textContent = "Connecté en tant que " + utilisateurCourant.email;
+      chargerMesEvenements();
+    } else {
+      carteConnexion.hidden = false;
+      zoneConnectee.hidden = true;
+      zoneDetailEvenement.hidden = true;
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // Création et liste des événements
+  // ---------------------------------------------------------------------
+
+  boutonCreerEvenement.addEventListener("click", async () => {
+    const nom = nouveauNom.value.trim();
+    if (!nom) {
+      afficherMessage(messageCreation, "Donnez un nom à votre tombola.", "erreur");
+      return;
+    }
+
+    boutonCreerEvenement.disabled = true;
+    const { data, error } = await supabaseClient
+      .from("evenements")
+      .insert({
+        organisateur_id: utilisateurCourant.id,
+        nom,
+        description: nouvelleDescription.value.trim() || null,
+        date_tirage: nouvelleDate.value ? new Date(nouvelleDate.value).toISOString() : null,
+        organisation_nom: nouvelleOrganisationNom.value.trim() || null,
+        organisation_presentation: nouvelleOrganisationPresentation.value.trim() || null,
+        organisation_contact: nouvelleOrganisationContact.value.trim() || null,
+        logo: iconeSelectionnee("icones-creation"),
+      })
+      .select()
+      .single();
+    boutonCreerEvenement.disabled = false;
+
+    if (error) {
+      afficherMessage(messageCreation, "Impossible de créer cet événement, réessayez.", "erreur");
+      return;
+    }
+
+    nouveauNom.value = "";
+    nouvelleDescription.value = "";
+    nouvelleDate.value = "";
+    nouvelleOrganisationNom.value = "";
+    nouvelleOrganisationPresentation.value = "";
+    nouvelleOrganisationContact.value = "";
+    definirIconeSelectionnee("icones-creation", null);
+
+    afficherMessage(messageCreation, "Événement créé !", "succes");
+    await chargerMesEvenements();
+    ouvrirDetailEvenement(data.id, data.nom);
+  });
+
+  function rendreLigneEvenement(evenement) {
+    const icone = evenement.logo ? evenement.logo + " " : "";
+    return `<li>
+      <span class="lot-nom">${icone}${evenement.nom}<br><span class="discret">${formaterDate(evenement.date_tirage)}</span></span>
+      <button type="button" class="secondaire" data-evenement-id="${evenement.id}" data-evenement-nom="${evenement.nom}">Ouvrir</button>
+    </li>`;
+  }
+
+  function activerBoutonsOuvrir(conteneur) {
+    conteneur.querySelectorAll("button[data-evenement-id]").forEach((bouton) => {
+      bouton.addEventListener("click", () =>
+        ouvrirDetailEvenement(bouton.dataset.evenementId, bouton.dataset.evenementNom)
+      );
+    });
+  }
+
+  async function chargerMesEvenements() {
+    const { data, error } = await supabaseClient
+      .from("evenements")
+      .select("id, nom, date_tirage, archive, logo")
+      .eq("organisateur_id", utilisateurCourant.id)
+      .order("cree_le", { ascending: false });
+
+    if (error || !data) return;
+
+    const evenementsActifs = data.filter((evenement) => !evenement.archive);
+    const evenementsArchives = data.filter((evenement) => evenement.archive);
+
+    if (evenementsActifs.length === 0) {
+      messagePasDEvenements.hidden = false;
+      listeEvenements.innerHTML = "";
+    } else {
+      messagePasDEvenements.hidden = true;
+      listeEvenements.innerHTML = evenementsActifs.map(rendreLigneEvenement).join("");
+      activerBoutonsOuvrir(listeEvenements);
+    }
+
+    if (evenementsArchives.length === 0) {
+      carteEvenementsArchives.hidden = true;
+    } else {
+      carteEvenementsArchives.hidden = false;
+      listeEvenementsArchives.innerHTML = evenementsArchives.map(rendreLigneEvenement).join("");
+      activerBoutonsOuvrir(listeEvenementsArchives);
+    }
+  }
+
+  // ---------------------------------------------------------------------
+  // Détail d'un événement : lots, carnets activés, tirage
+  // ---------------------------------------------------------------------
+
+  async function ouvrirDetailEvenement(evenementId, nomEvenement) {
+    evenementSelectionneId = evenementId;
+    zoneDetailEvenement.hidden = false;
+    titreDetailEvenement.textContent = nomEvenement;
+
+    const { data: evenement } = await supabaseClient
+      .from("evenements")
+      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, archive, logo")
+      .eq("id", evenementId)
+      .single();
+
+    if (evenement) {
+      modifNom.value = evenement.nom || "";
+      modifDescription.value = evenement.description || "";
+      modifDate.value = versValeurDatetimeLocal(evenement.date_tirage);
+      modifOrganisationNom.value = evenement.organisation_nom || "";
+      modifOrganisationPresentation.value = evenement.organisation_presentation || "";
+      modifOrganisationContact.value = evenement.organisation_contact || "";
+      definirIconeSelectionnee("icones-modification", evenement.logo);
+      evenementArchiveActuel = evenement.archive;
+      boutonArchiverEvenement.textContent = evenementArchiveActuel ? "Désarchiver cet événement" : "Archiver cet événement";
+      titreDetailEvenement.textContent = (evenement.logo ? evenement.logo + " " : "") + nomEvenement;
+    }
+
+    const urlPublique = new URL("carnet.html", window.location.href);
+    urlPublique.searchParams.set("id", evenementId);
+    lienPublicEvenement.href = urlPublique.toString();
+    lienPublicEvenement.textContent = urlPublique.toString();
+
+    // Généré directement dans le navigateur : le lien de l'événement n'est
+    // envoyé à aucun service externe pour produire ce QR code.
+    if (typeof QRCode === "undefined") {
+      messageQrCode.hidden = false;
+    } else {
+      messageQrCode.hidden = true;
+      if (instanceQrCode) {
+        instanceQrCode.clear();
+        instanceQrCode.makeCode(urlPublique.toString());
+      } else {
+        instanceQrCode = new QRCode(conteneurQrCode, {
+          text: urlPublique.toString(),
+          width: 220,
+          height: 220,
+        });
+      }
+    }
+
+    chargerLots();
+    chargerNombreBillets();
+    chargerBilletsExclus();
+    zoneDetailEvenement.scrollIntoView({ behavior: "smooth" });
+  }
+
+  boutonArchiverEvenement.addEventListener("click", async () => {
+    const nouvelEtat = !evenementArchiveActuel;
+    const { error } = await supabaseClient
+      .from("evenements")
+      .update({ archive: nouvelEtat })
+      .eq("id", evenementSelectionneId);
+
+    if (error) {
+      afficherMessage(messageModification, "Impossible de modifier l'archivage, réessayez.", "erreur");
+      return;
+    }
+
+    evenementArchiveActuel = nouvelEtat;
+    boutonArchiverEvenement.textContent = evenementArchiveActuel ? "Désarchiver cet événement" : "Archiver cet événement";
+    afficherMessage(messageModification, evenementArchiveActuel ? "Événement archivé." : "Événement désarchivé.", "succes");
+    chargerMesEvenements();
+  });
+
+  // Convertit une date ISO (telle que stockée en base) vers le format
+  // attendu par un champ <input type="datetime-local"> (heure locale,
+  // sans fuseau) — l'inverse de ce que fait la création de l'événement.
+  function versValeurDatetimeLocal(dateIso) {
+    if (!dateIso) return "";
+    const date = new Date(dateIso);
+    const decalageMs = date.getTimezoneOffset() * 60000;
+    return new Date(date.getTime() - decalageMs).toISOString().slice(0, 16);
+  }
+
+  boutonModifierEvenement.addEventListener("click", async () => {
+    const nom = modifNom.value.trim();
+    if (!nom) {
+      afficherMessage(messageModification, "Le nom de la tombola ne peut pas être vide.", "erreur");
+      return;
+    }
+
+    boutonModifierEvenement.disabled = true;
+    const { error } = await supabaseClient
+      .from("evenements")
+      .update({
+        nom,
+        description: modifDescription.value.trim() || null,
+        date_tirage: modifDate.value ? new Date(modifDate.value).toISOString() : null,
+        organisation_nom: modifOrganisationNom.value.trim() || null,
+        organisation_presentation: modifOrganisationPresentation.value.trim() || null,
+        organisation_contact: modifOrganisationContact.value.trim() || null,
+        logo: iconeSelectionnee("icones-modification"),
+      })
+      .eq("id", evenementSelectionneId);
+    boutonModifierEvenement.disabled = false;
+
+    if (error) {
+      afficherMessage(messageModification, "Impossible d'enregistrer ces modifications, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageModification, "Modifications enregistrées.", "succes");
+    const iconeChoisie = iconeSelectionnee("icones-modification");
+    titreDetailEvenement.textContent = (iconeChoisie ? iconeChoisie + " " : "") + nom;
+    chargerMesEvenements();
+  });
+
+  boutonTelechargerQrCode.addEventListener("click", () => {
+    // Selon le navigateur, la bibliothèque dessine le QR code sur un
+    // <canvas> ou, à défaut, sur une image <img> déjà encodée.
+    const canevas = conteneurQrCode.querySelector("canvas");
+    const image = conteneurQrCode.querySelector("img");
+    const source = canevas ? canevas.toDataURL("image/png") : image && image.src;
+
+    if (!source) {
+      afficherMessage(messageQrCode, "Le QR code n'est pas encore prêt, réessayez dans un instant.", "erreur");
+      return;
+    }
+
+    const lien = document.createElement("a");
+    lien.download = "qrcode-evenement.png";
+    lien.href = source;
+    lien.click();
+  });
+
+  // ---------------------------------------------------------------------
+  // Scan du QR d'activation à la caméra (évite de recopier à la main le
+  // code, une longue chaîne peu pratique à taper).
+  // ---------------------------------------------------------------------
+
+  let fluxCameraScan = null;
+  let scanEnCours = false;
+
+  async function demarrerScanQr() {
+    if (typeof jsQR === "undefined") {
+      afficherMessage(messageActivation, "Le lecteur de QR code n'a pas pu se charger, entrez le code manuellement.", "erreur");
+      return;
+    }
+
+    try {
+      fluxCameraScan = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    } catch (erreur) {
+      afficherMessage(messageActivation, "Impossible d'accéder à la caméra (autorisation refusée ou indisponible). Entrez le code manuellement.", "erreur");
+      return;
+    }
+
+    videoScan.srcObject = fluxCameraScan;
+    superpositionScan.hidden = false;
+    scanEnCours = true;
+    await videoScan.play();
+    requestAnimationFrame(analyserImageScan);
+  }
+
+  function arreterScanQr() {
+    scanEnCours = false;
+    superpositionScan.hidden = true;
+    if (fluxCameraScan) {
+      fluxCameraScan.getTracks().forEach((piste) => piste.stop());
+      fluxCameraScan = null;
+    }
+  }
+
+  function analyserImageScan() {
+    if (!scanEnCours) return;
+
+    if (videoScan.readyState === videoScan.HAVE_ENOUGH_DATA) {
+      canevasScan.width = videoScan.videoWidth;
+      canevasScan.height = videoScan.videoHeight;
+      const contexte = canevasScan.getContext("2d");
+      contexte.drawImage(videoScan, 0, 0, canevasScan.width, canevasScan.height);
+      const image = contexte.getImageData(0, 0, canevasScan.width, canevasScan.height);
+      const resultat = jsQR(image.data, image.width, image.height);
+
+      if (resultat && resultat.data) {
+        champCodeActivation.value = resultat.data.trim();
+        arreterScanQr();
+        afficherMessage(messageActivation, "Code détecté : vérifiez puis cliquez sur « Activer ce carnet ».", "succes");
+        return;
+      }
+    }
+
+    requestAnimationFrame(analyserImageScan);
+  }
+
+  boutonScannerQr.addEventListener("click", demarrerScanQr);
+  boutonAnnulerScan.addEventListener("click", arreterScanQr);
+
+  // ---------------------------------------------------------------------
+  // Activation d'un carnet de billets déjà imprimé
+  // ---------------------------------------------------------------------
+
+  boutonActiverCarnet.addEventListener("click", async () => {
+    const code = champCodeActivation.value.trim();
+    if (!code) {
+      afficherMessage(messageActivation, "Indiquez le code d'activation du carnet.", "erreur");
+      return;
+    }
+
+    boutonActiverCarnet.disabled = true;
+    const { data, error } = await supabaseClient.rpc("activer_carnet", {
+      p_evenement_id: evenementSelectionneId,
+      p_code_activation: code,
+    });
+    boutonActiverCarnet.disabled = false;
+
+    if (error) {
+      afficherMessage(messageActivation, error.message || "Impossible d'activer ce carnet, réessayez.", "erreur");
+      return;
+    }
+
+    champCodeActivation.value = "";
+    afficherMessage(messageActivation, `Carnet activé : ${data} billet(s) rattaché(s) à l'événement.`, "succes");
+    chargerNombreBillets();
+  });
+
+  // ---------------------------------------------------------------------
+  // Lots à gagner
+  // ---------------------------------------------------------------------
+
+  async function chargerLots() {
+    const { data, error } = await supabaseClient
+      .from("lots")
+      .select("id, rang, nom, billet_gagnant_id")
+      .eq("evenement_id", evenementSelectionneId)
+      .order("rang");
+
+    if (error) return;
+
+    listeLotsOrganisateur.innerHTML = data.length
+      ? data
+          .map(
+            (lot) => `<li>
+              <span class="lot-rang">${lot.rang}</span>
+              <span class="lot-nom">${lot.nom}</span>
+              <button type="button" class="secondaire" data-modifier-lot="${lot.id}" data-nom-actuel="${lot.nom.replace(/"/g, "&quot;")}">Modifier</button>
+              <button type="button" class="secondaire danger" data-supprimer-lot="${lot.id}">Supprimer</button>
+            </li>`
+          )
+          .join("")
+      : '<li class="discret">Aucun lot ajouté pour l\'instant.</li>';
+
+    listeLotsOrganisateur.querySelectorAll("button[data-modifier-lot]").forEach((bouton) => {
+      bouton.addEventListener("click", () => modifierLot(bouton.dataset.modifierLot, bouton.dataset.nomActuel));
+    });
+    listeLotsOrganisateur.querySelectorAll("button[data-supprimer-lot]").forEach((bouton) => {
+      bouton.addEventListener("click", () => supprimerLot(bouton.dataset.supprimerLot));
+    });
+
+    afficherListeTirage(data);
+  }
+
+  async function modifierLot(lotId, nomActuel) {
+    const nouveauNomLot = prompt("Nouveau nom du lot :", nomActuel);
+    if (nouveauNomLot === null) return;
+    const nomNettoye = nouveauNomLot.trim();
+    if (!nomNettoye) return;
+
+    const { error } = await supabaseClient.from("lots").update({ nom: nomNettoye }).eq("id", lotId);
+    if (error) {
+      afficherMessage(messageLot, "Impossible de modifier ce lot, réessayez.", "erreur");
+      return;
+    }
+    chargerLots();
+  }
+
+  async function supprimerLot(lotId) {
+    if (!confirm("Supprimer ce lot ? Cette action est définitive.")) return;
+
+    const { error } = await supabaseClient.from("lots").delete().eq("id", lotId);
+    if (error) {
+      afficherMessage(messageLot, "Impossible de supprimer ce lot, réessayez.", "erreur");
+      return;
+    }
+    chargerLots();
+  }
+
+  boutonAjouterLot.addEventListener("click", async () => {
+    const nom = nouveauLotNom.value.trim();
+    if (!nom) {
+      afficherMessage(messageLot, "Donnez un nom au lot.", "erreur");
+      return;
+    }
+
+    const { data: lotsExistants } = await supabaseClient
+      .from("lots")
+      .select("rang")
+      .eq("evenement_id", evenementSelectionneId)
+      .order("rang", { ascending: false })
+      .limit(1);
+
+    const prochainRang = lotsExistants && lotsExistants.length ? lotsExistants[0].rang + 1 : 1;
+
+    const { error } = await supabaseClient.from("lots").insert({
+      evenement_id: evenementSelectionneId,
+      rang: prochainRang,
+      nom,
+    });
+
+    if (error) {
+      afficherMessage(messageLot, "Impossible d'ajouter ce lot, réessayez.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageLot, "Lot ajouté.", "succes");
+    nouveauLotNom.value = "";
+    chargerLots();
+  });
+
+  // ---------------------------------------------------------------------
+  // Billets rattachés (via les carnets activés)
+  // ---------------------------------------------------------------------
+
+  async function chargerNombreBillets() {
+    const { count } = await supabaseClient
+      .from("billets")
+      .select("id", { count: "exact", head: true })
+      .eq("evenement_id", evenementSelectionneId);
+    nombreBillets.textContent = count || 0;
+  }
+
+  async function chargerBilletsExclus() {
+    const { data } = await supabaseClient
+      .from("billets")
+      .select("code")
+      .eq("evenement_id", evenementSelectionneId)
+      .eq("exclu", true)
+      .order("code");
+
+    if (!data || data.length === 0) {
+      listeBilletsExclus.innerHTML = '<li class="discret">Aucun billet exclu.</li>';
+      return;
+    }
+
+    listeBilletsExclus.innerHTML = data
+      .map(
+        (billet) => `<li>
+          <span class="lot-nom">${billet.code}</span>
+          <button type="button" class="secondaire" data-reinclure="${billet.code}">Réinclure</button>
+        </li>`
+      )
+      .join("");
+
+    listeBilletsExclus.querySelectorAll("button[data-reinclure]").forEach((bouton) => {
+      bouton.addEventListener("click", () => basculerExclusionBillet(bouton.dataset.reinclure, false));
+    });
+  }
+
+  async function basculerExclusionBillet(code, exclu) {
+    const { data, error } = await supabaseClient.rpc("exclure_billet", {
+      p_evenement_id: evenementSelectionneId,
+      p_code: code,
+      p_exclu: exclu,
+    });
+
+    if (error || !data) {
+      afficherMessage(messageBillets, "Ce code n'a pas été trouvé pour cet événement.", "erreur");
+      return;
+    }
+
+    afficherMessage(messageBillets, exclu ? "Billet exclu du tirage." : "Billet réintégré au tirage.", "succes");
+    chargerBilletsExclus();
+  }
+
+  boutonExclureBillet.addEventListener("click", () => {
+    const code = champExclureCode.value.trim();
+    if (!code) {
+      afficherMessage(messageBillets, "Indiquez le code du billet à exclure.", "erreur");
+      return;
+    }
+    basculerExclusionBillet(code, true);
+    champExclureCode.value = "";
+  });
+
+  // ---------------------------------------------------------------------
+  // Tirage au sort, lot par lot
+  // ---------------------------------------------------------------------
+
+  function afficherListeTirage(lots) {
+    if (!lots.length) {
+      listeTirage.innerHTML = '<li class="discret">Ajoutez d\'abord des lots pour pouvoir tirer au sort.</li>';
+      return;
+    }
+
+    listeTirage.innerHTML = lots
+      .map((lot) => {
+        const etat = lot.billet_gagnant_id
+          ? '<span class="lot-en-attente">déjà tiré</span>'
+          : `<button type="button" data-lot-id="${lot.id}">Tirer ce lot</button>`;
+        return `<li>
+          <span class="lot-rang">${lot.rang}</span>
+          <span class="lot-nom">${lot.nom}</span>
+          ${etat}
+        </li>`;
+      })
+      .join("");
+
+    listeTirage.querySelectorAll("button[data-lot-id]").forEach((bouton) => {
+      bouton.addEventListener("click", () => tirerCeLot(bouton.dataset.lotId, bouton));
+    });
+  }
+
+  async function tirerCeLot(lotId, bouton) {
+    bouton.disabled = true;
+    const { data, error } = await supabaseClient.rpc("effectuer_tirage", { p_lot_id: lotId });
+
+    if (error) {
+      afficherMessage(messageTirage, error.message || "Le tirage a échoué, réessayez.", "erreur");
+      bouton.disabled = false;
+      return;
+    }
+
+    const resultat = data && data[0];
+    afficherMessage(
+      messageTirage,
+      `Lot n°${resultat.rang} (${resultat.nom_lot}) : billet gagnant ${resultat.code_gagnant}`,
+      "succes"
+    );
+    chargerLots();
+  }
+</script>
+</body>
+</html>

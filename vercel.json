@@ -1,0 +1,7 @@
+{
+  "cleanUrls": false,
+  "trailingSlash": false,
+  "redirects": [
+    { "source": "/", "destination": "/page/index.html" }
+  ]
+}
