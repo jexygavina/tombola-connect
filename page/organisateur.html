@@ -41,7 +41,7 @@
     </div>
 
     <div class="carte">
-      <h2>Créer un nouveau carnet</h2>
+      <h2>Créer un nouvel événement</h2>
       <label for="nouveau-nom">Nom de la tombola</label>
       <input type="text" id="nouveau-nom" placeholder="Ex : Tombola de la kermesse 2026" />
       <label for="nouvelle-description">Description (facultatif)</label>
@@ -56,7 +56,7 @@
       <label for="nouvelle-organisation-contact">Contact / site web (facultatif)</label>
       <input type="text" id="nouvelle-organisation-contact" placeholder="Ex : contact@association.fr ou www.association.fr" />
 
-      <label>Icône du carnet (facultatif)</label>
+      <label>Icône de l'événement (facultatif)</label>
       <div class="grille-icones" id="icones-creation" data-valeur="">
         <button type="button" data-icone="🎉">🎉</button>
         <button type="button" data-icone="🎈">🎈</button>
@@ -80,36 +80,36 @@
         <button type="button" data-icone="⌚">⌚</button>
       </div>
 
-      <button type="button" id="bouton-creer-carnet">Créer le carnet</button>
+      <button type="button" id="bouton-creer-evenement">Créer l'événement</button>
       <div id="message-creation" class="message" hidden></div>
     </div>
 
     <div class="carte">
-      <h2>Mes carnets</h2>
-      <p id="message-pas-de-carnets" class="discret" hidden>Vous n'avez pas encore créé de carnet.</p>
-      <ul class="liste-lots" id="liste-carnets"></ul>
+      <h2>Mes événements</h2>
+      <p id="message-pas-d-evenements" class="discret" hidden>Vous n'avez pas encore créé d'événement.</p>
+      <ul class="liste-lots" id="liste-evenements"></ul>
     </div>
 
-    <div class="carte" id="carte-carnets-archives" hidden>
-      <h2>Carnets archivés</h2>
-      <ul class="liste-lots" id="liste-carnets-archives"></ul>
+    <div class="carte" id="carte-evenements-archives" hidden>
+      <h2>Événements archivés</h2>
+      <ul class="liste-lots" id="liste-evenements-archives"></ul>
     </div>
 
-    <!-- Détail d'un carnet sélectionné -->
-    <div id="zone-detail-carnet" hidden>
+    <!-- Détail d'un événement sélectionné -->
+    <div id="zone-detail-evenement" hidden>
       <div class="carte">
-        <h2 id="titre-detail-carnet"></h2>
+        <h2 id="titre-detail-evenement"></h2>
         <p class="discret">Lien à partager avec les acheteurs de billets :</p>
-        <p><a id="lien-public-carnet" href="#" target="_blank"></a></p>
+        <p><a id="lien-public-evenement" href="#" target="_blank"></a></p>
 
-        <p class="discret">Code QR à imprimer sur vos billets : un scan amène directement sur cette page.</p>
-        <div id="qrcode-carnet"></div>
+        <p class="discret">Code QR : un scan amène directement sur cette page.</p>
+        <div id="qrcode-evenement"></div>
         <p id="message-qrcode" class="message erreur" hidden>Le QR code n'a pas pu être généré. Essayez de recharger la page.</p>
         <button type="button" class="secondaire" id="bouton-telecharger-qrcode">Télécharger l'image du QR code</button>
       </div>
 
       <div class="carte">
-        <h2>Modifier les informations du carnet</h2>
+        <h2>Modifier les informations de l'événement</h2>
         <label for="modif-nom">Nom de la tombola</label>
         <input type="text" id="modif-nom" />
         <label for="modif-description">Description (facultatif)</label>
@@ -123,7 +123,7 @@
         <label for="modif-organisation-contact">Contact / site web (facultatif)</label>
         <input type="text" id="modif-organisation-contact" />
 
-        <label>Icône du carnet (facultatif)</label>
+        <label>Icône de l'événement (facultatif)</label>
         <div class="grille-icones" id="icones-modification" data-valeur="">
           <button type="button" data-icone="🎉">🎉</button>
           <button type="button" data-icone="🎈">🎈</button>
@@ -147,27 +147,26 @@
           <button type="button" data-icone="⌚">⌚</button>
         </div>
 
-        <button type="button" id="bouton-modifier-carnet">Enregistrer les modifications</button>
+        <button type="button" id="bouton-modifier-evenement">Enregistrer les modifications</button>
         <div id="message-modification" class="message" hidden></div>
 
         <p class="discret" style="margin-top:20px">
-          Archiver une tombola terminée la sort de la liste principale, sans rien changer pour le public.
+          Archiver un événement terminé le sort de la liste principale, sans rien changer pour le public.
         </p>
-        <button type="button" class="secondaire" id="bouton-archiver-carnet">Archiver ce carnet</button>
+        <button type="button" class="secondaire" id="bouton-archiver-evenement">Archiver cet événement</button>
       </div>
 
       <div class="carte">
-        <h2>Lot de billets déjà imprimé</h2>
-        <p id="lot-imprime-relie" class="discret" hidden>Ce carnet est relié au lot imprimé <strong id="lot-imprime-reference"></strong>.</p>
-        <div id="lot-imprime-formulaire">
-          <p class="discret">Si vous avez acheté des billets pré-imprimés avec QR code, scannez le QR code d'activation présent sur la couverture de votre carnet : cette page se remplit alors automatiquement. Vous pouvez aussi saisir les codes vous-même ci-dessous si besoin.</p>
-          <label for="champ-reference-imprimee">Référence</label>
-          <input type="text" id="champ-reference-imprimee" />
-          <label for="champ-cle-activation">Clé d'activation</label>
-          <input type="text" id="champ-cle-activation" />
-          <button type="button" id="bouton-relier-lot">Relier ce lot au carnet</button>
-        </div>
-        <div id="message-lot-imprime" class="message" hidden></div>
+        <h2>Activer un carnet de billets</h2>
+        <p class="discret">
+          Vous avez un carnet de billets déjà imprimés (acheté par exemple sur Amazon) ? Entrez le code
+          d'activation inscrit sur sa couverture pour rattacher tous ses billets à cet événement. Un carnet ne
+          peut être activé qu'une seule fois, et seulement sur un événement à la fois.
+        </p>
+        <label for="champ-code-activation">Code d'activation du carnet</label>
+        <input type="text" id="champ-code-activation" placeholder="Code inscrit sur la couverture du carnet" />
+        <button type="button" id="bouton-activer-carnet">Activer ce carnet</button>
+        <div id="message-activation" class="message" hidden></div>
       </div>
 
       <div class="carte">
@@ -180,22 +179,8 @@
       </div>
 
       <div class="carte">
-        <h2>Billets enregistrés</h2>
-        <p class="discret"><span id="nombre-billets">0</span> billet(s) enregistré(s) pour ce carnet.</p>
-
-        <label for="plage-prefixe">Enregistrer une plage de billets</label>
-        <div class="barre-actions">
-          <input type="text" id="plage-prefixe" placeholder="Préfixe (ex: A-)" style="max-width:120px" />
-          <input type="number" id="plage-debut" placeholder="Numéro de début" style="max-width:160px" />
-          <input type="number" id="plage-fin" placeholder="Numéro de fin" style="max-width:160px" />
-        </div>
-        <button type="button" id="bouton-enregistrer-plage">Enregistrer cette plage</button>
-
-        <label for="liste-codes-collee">Ou coller une liste de codes (un par ligne)</label>
-        <textarea id="liste-codes-collee" placeholder="A-00001&#10;A-00002&#10;A-00003…"></textarea>
-        <button type="button" id="bouton-enregistrer-liste">Enregistrer cette liste</button>
-
-        <div id="message-billets" class="message" hidden></div>
+        <h2>Billets rattachés</h2>
+        <p class="discret"><span id="nombre-billets">0</span> billet(s) rattaché(s) à cet événement, via les carnets activés ci-dessus.</p>
 
         <label for="champ-exclure-code">Exclure un billet du tirage (ex : billet abîmé)</label>
         <div class="barre-actions">
@@ -204,11 +189,12 @@
         </div>
         <p class="discret">Billets actuellement exclus :</p>
         <ul class="liste-lots" id="liste-billets-exclus"></ul>
+        <div id="message-billets" class="message" hidden></div>
       </div>
 
       <div class="carte">
         <h2>Tirage au sort</h2>
-        <p class="discret">Le jour du tirage, appuyez sur « Tirer ce lot » lot par lot. Un billet ne peut jamais gagner deux fois sur le même carnet.</p>
+        <p class="discret">Le jour du tirage, appuyez sur « Tirer ce lot » lot par lot. Un billet ne peut jamais gagner deux fois sur le même événement.</p>
         <ul class="liste-lots" id="liste-tirage"></ul>
         <div id="message-tirage" class="message" hidden></div>
       </div>
@@ -234,18 +220,18 @@
   const nouvelleOrganisationNom = document.getElementById("nouvelle-organisation-nom");
   const nouvelleOrganisationPresentation = document.getElementById("nouvelle-organisation-presentation");
   const nouvelleOrganisationContact = document.getElementById("nouvelle-organisation-contact");
-  const boutonCreerCarnet = document.getElementById("bouton-creer-carnet");
+  const boutonCreerEvenement = document.getElementById("bouton-creer-evenement");
   const messageCreation = document.getElementById("message-creation");
 
-  const listeCarnets = document.getElementById("liste-carnets");
-  const messagePasDeCarnets = document.getElementById("message-pas-de-carnets");
-  const carteCarnetsArchives = document.getElementById("carte-carnets-archives");
-  const listeCarnetsArchives = document.getElementById("liste-carnets-archives");
+  const listeEvenements = document.getElementById("liste-evenements");
+  const messagePasDEvenements = document.getElementById("message-pas-d-evenements");
+  const carteEvenementsArchives = document.getElementById("carte-evenements-archives");
+  const listeEvenementsArchives = document.getElementById("liste-evenements-archives");
 
-  const zoneDetailCarnet = document.getElementById("zone-detail-carnet");
-  const titreDetailCarnet = document.getElementById("titre-detail-carnet");
-  const lienPublicCarnet = document.getElementById("lien-public-carnet");
-  const conteneurQrCode = document.getElementById("qrcode-carnet");
+  const zoneDetailEvenement = document.getElementById("zone-detail-evenement");
+  const titreDetailEvenement = document.getElementById("titre-detail-evenement");
+  const lienPublicEvenement = document.getElementById("lien-public-evenement");
+  const conteneurQrCode = document.getElementById("qrcode-evenement");
   const messageQrCode = document.getElementById("message-qrcode");
   const boutonTelechargerQrCode = document.getElementById("bouton-telecharger-qrcode");
   let instanceQrCode = null;
@@ -256,18 +242,14 @@
   const modifOrganisationNom = document.getElementById("modif-organisation-nom");
   const modifOrganisationPresentation = document.getElementById("modif-organisation-presentation");
   const modifOrganisationContact = document.getElementById("modif-organisation-contact");
-  const boutonModifierCarnet = document.getElementById("bouton-modifier-carnet");
+  const boutonModifierEvenement = document.getElementById("bouton-modifier-evenement");
   const messageModification = document.getElementById("message-modification");
-  const boutonArchiverCarnet = document.getElementById("bouton-archiver-carnet");
-  let carnetArchiveActuel = false;
+  const boutonArchiverEvenement = document.getElementById("bouton-archiver-evenement");
+  let evenementArchiveActuel = false;
 
-  const lotImprimeRelie = document.getElementById("lot-imprime-relie");
-  const lotImprimeReference = document.getElementById("lot-imprime-reference");
-  const lotImprimeFormulaire = document.getElementById("lot-imprime-formulaire");
-  const champReferenceImprimee = document.getElementById("champ-reference-imprimee");
-  const champCleActivation = document.getElementById("champ-cle-activation");
-  const boutonRelierLot = document.getElementById("bouton-relier-lot");
-  const messageLotImprime = document.getElementById("message-lot-imprime");
+  const champCodeActivation = document.getElementById("champ-code-activation");
+  const boutonActiverCarnet = document.getElementById("bouton-activer-carnet");
+  const messageActivation = document.getElementById("message-activation");
 
   const listeLotsOrganisateur = document.getElementById("liste-lots-organisateur");
   const nouveauLotNom = document.getElementById("nouveau-lot-nom");
@@ -275,32 +257,19 @@
   const messageLot = document.getElementById("message-lot");
 
   const nombreBillets = document.getElementById("nombre-billets");
-  const plagePrefixe = document.getElementById("plage-prefixe");
-  const plageDebut = document.getElementById("plage-debut");
-  const plageFin = document.getElementById("plage-fin");
-  const boutonEnregistrerPlage = document.getElementById("bouton-enregistrer-plage");
-  const listeCodesCollee = document.getElementById("liste-codes-collee");
-  const boutonEnregistrerListe = document.getElementById("bouton-enregistrer-liste");
-  const messageBillets = document.getElementById("message-billets");
   const champExclureCode = document.getElementById("champ-exclure-code");
   const boutonExclureBillet = document.getElementById("bouton-exclure-billet");
   const listeBilletsExclus = document.getElementById("liste-billets-exclus");
+  const messageBillets = document.getElementById("message-billets");
 
   const listeTirage = document.getElementById("liste-tirage");
   const messageTirage = document.getElementById("message-tirage");
 
   let utilisateurCourant = null;
-  let carnetSelectionneId = null;
-
-  // Présents uniquement si l'organisateur a scanné le QR d'activation
-  // imprimé sur la couverture de son carnet (jamais sur les billets eux-
-  // mêmes) : { ref: référence publique, cle: clé secrète du lot }.
-  const paramsUrl = new URLSearchParams(window.location.search);
-  let refDepuisUrl = paramsUrl.get("ref");
-  let cleDepuisUrl = paramsUrl.get("cle");
+  let evenementSelectionneId = null;
 
   // ---------------------------------------------------------------------
-  // Grille d'icônes (création et modification d'un carnet)
+  // Grille d'icônes (création et modification d'un événement)
   // ---------------------------------------------------------------------
 
   function initialiserGrilleIcones(conteneurId) {
@@ -362,60 +331,34 @@
     await supabaseClient.auth.signOut();
   });
 
-  supabaseClient.auth.onAuthStateChange((_evenement, session) => {
+  supabaseClient.auth.onAuthStateChange((_evt, session) => {
     utilisateurCourant = session ? session.user : null;
     if (utilisateurCourant) {
       carteConnexion.hidden = true;
       zoneConnectee.hidden = false;
       texteBienvenue.textContent = "Connecté en tant que " + utilisateurCourant.email;
-      chargerMesCarnets();
-      verifierLotImprimeDepuisUrl();
+      chargerMesEvenements();
     } else {
       carteConnexion.hidden = false;
       zoneConnectee.hidden = true;
-      zoneDetailCarnet.hidden = true;
+      zoneDetailEvenement.hidden = true;
     }
   });
 
-  // Un QR de couverture déjà scanné une première fois doit rouvrir
-  // directement le carnet concerné plutôt que de proposer d'en recréer un.
-  async function verifierLotImprimeDepuisUrl() {
-    if (!refDepuisUrl) return;
-
-    const { data } = await supabaseClient
-      .from("carnets")
-      .select("id, nom, organisateur_id")
-      .eq("reference_imprimee", refDepuisUrl)
-      .maybeSingle();
-
-    if (data && data.organisateur_id === utilisateurCourant.id) {
-      ouvrirDetailCarnet(data.id, data.nom);
-      return;
-    }
-
-    if (cleDepuisUrl) {
-      afficherMessage(
-        messageCreation,
-        "Vous configurez un nouveau carnet à partir d'un lot de billets déjà imprimé : remplissez les informations ci-dessous, le lot sera relié automatiquement à la création.",
-        "info"
-      );
-    }
-  }
-
   // ---------------------------------------------------------------------
-  // Création et liste des carnets
+  // Création et liste des événements
   // ---------------------------------------------------------------------
 
-  boutonCreerCarnet.addEventListener("click", async () => {
+  boutonCreerEvenement.addEventListener("click", async () => {
     const nom = nouveauNom.value.trim();
     if (!nom) {
       afficherMessage(messageCreation, "Donnez un nom à votre tombola.", "erreur");
       return;
     }
 
-    boutonCreerCarnet.disabled = true;
+    boutonCreerEvenement.disabled = true;
     const { data, error } = await supabaseClient
-      .from("carnets")
+      .from("evenements")
       .insert({
         organisateur_id: utilisateurCourant.id,
         nom,
@@ -428,10 +371,10 @@
       })
       .select()
       .single();
-    boutonCreerCarnet.disabled = false;
+    boutonCreerEvenement.disabled = false;
 
     if (error) {
-      afficherMessage(messageCreation, "Impossible de créer ce carnet, réessayez.", "erreur");
+      afficherMessage(messageCreation, "Impossible de créer cet événement, réessayez.", "erreur");
       return;
     }
 
@@ -443,118 +386,91 @@
     nouvelleOrganisationContact.value = "";
     definirIconeSelectionnee("icones-creation", null);
 
-    if (refDepuisUrl && cleDepuisUrl) {
-      const { error: erreurLiaison } = await supabaseClient.rpc("activer_reference_imprimee", {
-        p_reference: refDepuisUrl,
-        p_cle_activation: cleDepuisUrl,
-        p_carnet_id: data.id,
-      });
-
-      if (erreurLiaison) {
-        afficherMessage(messageCreation, "Carnet créé, mais le lot n'a pas pu être relié automatiquement : " + erreurLiaison.message, "erreur");
-      } else {
-        afficherMessage(messageCreation, "Carnet créé et relié au lot de billets imprimé !", "succes");
-        refDepuisUrl = null;
-        cleDepuisUrl = null;
-        history.replaceState(null, "", window.location.pathname);
-      }
-    } else {
-      afficherMessage(messageCreation, "Carnet créé !", "succes");
-    }
-
-    await chargerMesCarnets();
-    ouvrirDetailCarnet(data.id, data.nom);
+    afficherMessage(messageCreation, "Événement créé !", "succes");
+    await chargerMesEvenements();
+    ouvrirDetailEvenement(data.id, data.nom);
   });
 
-  function rendreLigneCarnet(carnet) {
-    const icone = carnet.logo ? carnet.logo + " " : "";
+  function rendreLigneEvenement(evenement) {
+    const icone = evenement.logo ? evenement.logo + " " : "";
     return `<li>
-      <span class="lot-nom">${icone}${carnet.nom}<br><span class="discret">${formaterDate(carnet.date_tirage)}</span></span>
-      <button type="button" class="secondaire" data-carnet-id="${carnet.id}" data-carnet-nom="${carnet.nom}">Ouvrir</button>
+      <span class="lot-nom">${icone}${evenement.nom}<br><span class="discret">${formaterDate(evenement.date_tirage)}</span></span>
+      <button type="button" class="secondaire" data-evenement-id="${evenement.id}" data-evenement-nom="${evenement.nom}">Ouvrir</button>
     </li>`;
   }
 
   function activerBoutonsOuvrir(conteneur) {
-    conteneur.querySelectorAll("button[data-carnet-id]").forEach((bouton) => {
+    conteneur.querySelectorAll("button[data-evenement-id]").forEach((bouton) => {
       bouton.addEventListener("click", () =>
-        ouvrirDetailCarnet(bouton.dataset.carnetId, bouton.dataset.carnetNom)
+        ouvrirDetailEvenement(bouton.dataset.evenementId, bouton.dataset.evenementNom)
       );
     });
   }
 
-  async function chargerMesCarnets() {
+  async function chargerMesEvenements() {
     const { data, error } = await supabaseClient
-      .from("carnets")
+      .from("evenements")
       .select("id, nom, date_tirage, archive, logo")
       .eq("organisateur_id", utilisateurCourant.id)
       .order("cree_le", { ascending: false });
 
     if (error || !data) return;
 
-    const carnetsActifs = data.filter((carnet) => !carnet.archive);
-    const carnetsArchives = data.filter((carnet) => carnet.archive);
+    const evenementsActifs = data.filter((evenement) => !evenement.archive);
+    const evenementsArchives = data.filter((evenement) => evenement.archive);
 
-    if (carnetsActifs.length === 0) {
-      messagePasDeCarnets.hidden = false;
-      listeCarnets.innerHTML = "";
+    if (evenementsActifs.length === 0) {
+      messagePasDEvenements.hidden = false;
+      listeEvenements.innerHTML = "";
     } else {
-      messagePasDeCarnets.hidden = true;
-      listeCarnets.innerHTML = carnetsActifs.map(rendreLigneCarnet).join("");
-      activerBoutonsOuvrir(listeCarnets);
+      messagePasDEvenements.hidden = true;
+      listeEvenements.innerHTML = evenementsActifs.map(rendreLigneEvenement).join("");
+      activerBoutonsOuvrir(listeEvenements);
     }
 
-    if (carnetsArchives.length === 0) {
-      carteCarnetsArchives.hidden = true;
+    if (evenementsArchives.length === 0) {
+      carteEvenementsArchives.hidden = true;
     } else {
-      carteCarnetsArchives.hidden = false;
-      listeCarnetsArchives.innerHTML = carnetsArchives.map(rendreLigneCarnet).join("");
-      activerBoutonsOuvrir(listeCarnetsArchives);
+      carteEvenementsArchives.hidden = false;
+      listeEvenementsArchives.innerHTML = evenementsArchives.map(rendreLigneEvenement).join("");
+      activerBoutonsOuvrir(listeEvenementsArchives);
     }
   }
 
   // ---------------------------------------------------------------------
-  // Détail d'un carnet : lots, billets, tirage
+  // Détail d'un événement : lots, carnets activés, tirage
   // ---------------------------------------------------------------------
 
-  async function ouvrirDetailCarnet(carnetId, nomCarnet) {
-    carnetSelectionneId = carnetId;
-    zoneDetailCarnet.hidden = false;
-    titreDetailCarnet.textContent = nomCarnet;
+  async function ouvrirDetailEvenement(evenementId, nomEvenement) {
+    evenementSelectionneId = evenementId;
+    zoneDetailEvenement.hidden = false;
+    titreDetailEvenement.textContent = nomEvenement;
 
-    const { data: carnet } = await supabaseClient
-      .from("carnets")
-      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, reference_imprimee, archive, logo")
-      .eq("id", carnetId)
+    const { data: evenement } = await supabaseClient
+      .from("evenements")
+      .select("nom, description, date_tirage, organisation_nom, organisation_presentation, organisation_contact, archive, logo")
+      .eq("id", evenementId)
       .single();
-    const referenceImprimee = carnet && carnet.reference_imprimee;
 
-    if (carnet) {
-      modifNom.value = carnet.nom || "";
-      modifDescription.value = carnet.description || "";
-      modifDate.value = versValeurDatetimeLocal(carnet.date_tirage);
-      modifOrganisationNom.value = carnet.organisation_nom || "";
-      modifOrganisationPresentation.value = carnet.organisation_presentation || "";
-      modifOrganisationContact.value = carnet.organisation_contact || "";
-      definirIconeSelectionnee("icones-modification", carnet.logo);
-      carnetArchiveActuel = carnet.archive;
-      boutonArchiverCarnet.textContent = carnetArchiveActuel ? "Désarchiver ce carnet" : "Archiver ce carnet";
-      titreDetailCarnet.textContent = (carnet.logo ? carnet.logo + " " : "") + nomCarnet;
+    if (evenement) {
+      modifNom.value = evenement.nom || "";
+      modifDescription.value = evenement.description || "";
+      modifDate.value = versValeurDatetimeLocal(evenement.date_tirage);
+      modifOrganisationNom.value = evenement.organisation_nom || "";
+      modifOrganisationPresentation.value = evenement.organisation_presentation || "";
+      modifOrganisationContact.value = evenement.organisation_contact || "";
+      definirIconeSelectionnee("icones-modification", evenement.logo);
+      evenementArchiveActuel = evenement.archive;
+      boutonArchiverEvenement.textContent = evenementArchiveActuel ? "Désarchiver cet événement" : "Archiver cet événement";
+      titreDetailEvenement.textContent = (evenement.logo ? evenement.logo + " " : "") + nomEvenement;
     }
 
-    // Un carnet relié à un lot déjà imprimé garde la référence choisie à
-    // l'impression (le QR papier ne change jamais) ; sinon on retombe sur
-    // l'identifiant technique, comme pour un carnet créé sans billets
-    // pré-imprimés.
     const urlPublique = new URL("carnet.html", window.location.href);
-    if (referenceImprimee) {
-      urlPublique.searchParams.set("ref", referenceImprimee);
-    } else {
-      urlPublique.searchParams.set("id", carnetId);
-    }
-    lienPublicCarnet.href = urlPublique.toString();
-    lienPublicCarnet.textContent = urlPublique.toString();
+    urlPublique.searchParams.set("id", evenementId);
+    lienPublicEvenement.href = urlPublique.toString();
+    lienPublicEvenement.textContent = urlPublique.toString();
 
-    // Généré directement dans le navigateur : le lien du carnet n'est
+    // Généré directement dans le navigateur : le lien de l'événement n'est
     // envoyé à aucun service externe pour produire ce QR code.
     if (typeof QRCode === "undefined") {
       messageQrCode.hidden = false;
@@ -572,42 +488,33 @@
       }
     }
 
-    if (referenceImprimee) {
-      lotImprimeRelie.hidden = false;
-      lotImprimeReference.textContent = referenceImprimee;
-      lotImprimeFormulaire.hidden = true;
-    } else {
-      lotImprimeRelie.hidden = true;
-      lotImprimeFormulaire.hidden = false;
-    }
-
     chargerLots();
     chargerNombreBillets();
     chargerBilletsExclus();
-    zoneDetailCarnet.scrollIntoView({ behavior: "smooth" });
+    zoneDetailEvenement.scrollIntoView({ behavior: "smooth" });
   }
 
-  boutonArchiverCarnet.addEventListener("click", async () => {
-    const nouvelEtat = !carnetArchiveActuel;
+  boutonArchiverEvenement.addEventListener("click", async () => {
+    const nouvelEtat = !evenementArchiveActuel;
     const { error } = await supabaseClient
-      .from("carnets")
+      .from("evenements")
       .update({ archive: nouvelEtat })
-      .eq("id", carnetSelectionneId);
+      .eq("id", evenementSelectionneId);
 
     if (error) {
       afficherMessage(messageModification, "Impossible de modifier l'archivage, réessayez.", "erreur");
       return;
     }
 
-    carnetArchiveActuel = nouvelEtat;
-    boutonArchiverCarnet.textContent = carnetArchiveActuel ? "Désarchiver ce carnet" : "Archiver ce carnet";
-    afficherMessage(messageModification, carnetArchiveActuel ? "Carnet archivé." : "Carnet désarchivé.", "succes");
-    chargerMesCarnets();
+    evenementArchiveActuel = nouvelEtat;
+    boutonArchiverEvenement.textContent = evenementArchiveActuel ? "Désarchiver cet événement" : "Archiver cet événement";
+    afficherMessage(messageModification, evenementArchiveActuel ? "Événement archivé." : "Événement désarchivé.", "succes");
+    chargerMesEvenements();
   });
 
   // Convertit une date ISO (telle que stockée en base) vers le format
   // attendu par un champ <input type="datetime-local"> (heure locale,
-  // sans fuseau) — l'inverse de ce que fait la création du carnet.
+  // sans fuseau) — l'inverse de ce que fait la création de l'événement.
   function versValeurDatetimeLocal(dateIso) {
     if (!dateIso) return "";
     const date = new Date(dateIso);
@@ -615,16 +522,16 @@
     return new Date(date.getTime() - decalageMs).toISOString().slice(0, 16);
   }
 
-  boutonModifierCarnet.addEventListener("click", async () => {
+  boutonModifierEvenement.addEventListener("click", async () => {
     const nom = modifNom.value.trim();
     if (!nom) {
       afficherMessage(messageModification, "Le nom de la tombola ne peut pas être vide.", "erreur");
       return;
     }
 
-    boutonModifierCarnet.disabled = true;
+    boutonModifierEvenement.disabled = true;
     const { error } = await supabaseClient
-      .from("carnets")
+      .from("evenements")
       .update({
         nom,
         description: modifDescription.value.trim() || null,
@@ -634,8 +541,8 @@
         organisation_contact: modifOrganisationContact.value.trim() || null,
         logo: iconeSelectionnee("icones-modification"),
       })
-      .eq("id", carnetSelectionneId);
-    boutonModifierCarnet.disabled = false;
+      .eq("id", evenementSelectionneId);
+    boutonModifierEvenement.disabled = false;
 
     if (error) {
       afficherMessage(messageModification, "Impossible d'enregistrer ces modifications, réessayez.", "erreur");
@@ -644,8 +551,8 @@
 
     afficherMessage(messageModification, "Modifications enregistrées.", "succes");
     const iconeChoisie = iconeSelectionnee("icones-modification");
-    titreDetailCarnet.textContent = (iconeChoisie ? iconeChoisie + " " : "") + nom;
-    chargerMesCarnets();
+    titreDetailEvenement.textContent = (iconeChoisie ? iconeChoisie + " " : "") + nom;
+    chargerMesEvenements();
   });
 
   boutonTelechargerQrCode.addEventListener("click", () => {
@@ -661,43 +568,48 @@
     }
 
     const lien = document.createElement("a");
-    lien.download = "qrcode-tombola.png";
+    lien.download = "qrcode-evenement.png";
     lien.href = source;
     lien.click();
   });
 
-  boutonRelierLot.addEventListener("click", async () => {
-    const reference = champReferenceImprimee.value.trim();
-    const cle = champCleActivation.value.trim();
-    if (!reference || !cle) {
-      afficherMessage(messageLotImprime, "Indiquez la référence et la clé d'activation.", "erreur");
+  // ---------------------------------------------------------------------
+  // Activation d'un carnet de billets déjà imprimé
+  // ---------------------------------------------------------------------
+
+  boutonActiverCarnet.addEventListener("click", async () => {
+    const code = champCodeActivation.value.trim();
+    if (!code) {
+      afficherMessage(messageActivation, "Indiquez le code d'activation du carnet.", "erreur");
       return;
     }
 
-    boutonRelierLot.disabled = true;
-    const { error } = await supabaseClient.rpc("activer_reference_imprimee", {
-      p_reference: reference,
-      p_cle_activation: cle,
-      p_carnet_id: carnetSelectionneId,
+    boutonActiverCarnet.disabled = true;
+    const { data, error } = await supabaseClient.rpc("activer_carnet", {
+      p_evenement_id: evenementSelectionneId,
+      p_code_activation: code,
     });
-    boutonRelierLot.disabled = false;
+    boutonActiverCarnet.disabled = false;
 
     if (error) {
-      afficherMessage(messageLotImprime, error.message || "Impossible de relier ce lot, réessayez.", "erreur");
+      afficherMessage(messageActivation, error.message || "Impossible d'activer ce carnet, réessayez.", "erreur");
       return;
     }
 
-    champReferenceImprimee.value = "";
-    champCleActivation.value = "";
-    afficherMessage(messageLotImprime, "Lot relié avec succès !", "succes");
-    ouvrirDetailCarnet(carnetSelectionneId, titreDetailCarnet.textContent);
+    champCodeActivation.value = "";
+    afficherMessage(messageActivation, `Carnet activé : ${data} billet(s) rattaché(s) à l'événement.`, "succes");
+    chargerNombreBillets();
   });
+
+  // ---------------------------------------------------------------------
+  // Lots à gagner
+  // ---------------------------------------------------------------------
 
   async function chargerLots() {
     const { data, error } = await supabaseClient
       .from("lots")
       .select("id, rang, nom, billet_gagnant_id")
-      .eq("carnet_id", carnetSelectionneId)
+      .eq("evenement_id", evenementSelectionneId)
       .order("rang");
 
     if (error) return;
@@ -760,14 +672,14 @@
     const { data: lotsExistants } = await supabaseClient
       .from("lots")
       .select("rang")
-      .eq("carnet_id", carnetSelectionneId)
+      .eq("evenement_id", evenementSelectionneId)
       .order("rang", { ascending: false })
       .limit(1);
 
     const prochainRang = lotsExistants && lotsExistants.length ? lotsExistants[0].rang + 1 : 1;
 
     const { error } = await supabaseClient.from("lots").insert({
-      carnet_id: carnetSelectionneId,
+      evenement_id: evenementSelectionneId,
       rang: prochainRang,
       nom,
     });
@@ -783,14 +695,14 @@
   });
 
   // ---------------------------------------------------------------------
-  // Enregistrement des billets déjà imprimés
+  // Billets rattachés (via les carnets activés)
   // ---------------------------------------------------------------------
 
   async function chargerNombreBillets() {
     const { count } = await supabaseClient
       .from("billets")
       .select("id", { count: "exact", head: true })
-      .eq("carnet_id", carnetSelectionneId);
+      .eq("evenement_id", evenementSelectionneId);
     nombreBillets.textContent = count || 0;
   }
 
@@ -798,7 +710,7 @@
     const { data } = await supabaseClient
       .from("billets")
       .select("code")
-      .eq("carnet_id", carnetSelectionneId)
+      .eq("evenement_id", evenementSelectionneId)
       .eq("exclu", true)
       .order("code");
 
@@ -823,13 +735,13 @@
 
   async function basculerExclusionBillet(code, exclu) {
     const { data, error } = await supabaseClient.rpc("exclure_billet", {
-      p_carnet_id: carnetSelectionneId,
+      p_evenement_id: evenementSelectionneId,
       p_code: code,
       p_exclu: exclu,
     });
 
     if (error || !data) {
-      afficherMessage(messageBillets, "Ce code n'a pas été trouvé pour ce carnet.", "erreur");
+      afficherMessage(messageBillets, "Ce code n'a pas été trouvé pour cet événement.", "erreur");
       return;
     }
 
@@ -845,44 +757,6 @@
     }
     basculerExclusionBillet(code, true);
     champExclureCode.value = "";
-  });
-
-  async function enregistrerCodes(codes) {
-    if (codes.length === 0) {
-      afficherMessage(messageBillets, "Aucun code à enregistrer.", "erreur");
-      return;
-    }
-    const { data, error } = await supabaseClient.rpc("generer_billets", {
-      p_carnet_id: carnetSelectionneId,
-      p_codes: codes,
-    });
-
-    if (error) {
-      afficherMessage(messageBillets, "Impossible d'enregistrer ces billets, réessayez.", "erreur");
-      return;
-    }
-
-    afficherMessage(messageBillets, `${data} billet(s) enregistré(s) (les codes déjà connus ne sont pas dupliqués).`, "succes");
-    chargerNombreBillets();
-  }
-
-  boutonEnregistrerPlage.addEventListener("click", () => {
-    try {
-      const codes = construireCodesDepuisPlage(
-        plagePrefixe.value.trim(),
-        plageDebut.value,
-        plageFin.value
-      );
-      enregistrerCodes(codes);
-    } catch (erreur) {
-      afficherMessage(messageBillets, erreur.message, "erreur");
-    }
-  });
-
-  boutonEnregistrerListe.addEventListener("click", () => {
-    const codes = construireCodesDepuisListe(listeCodesCollee.value);
-    enregistrerCodes(codes);
-    listeCodesCollee.value = "";
   });
 
   // ---------------------------------------------------------------------

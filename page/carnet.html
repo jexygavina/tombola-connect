@@ -17,12 +17,12 @@
   </div>
   <div class="accent-carres" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
   <header class="entete">
-    <h1 id="titre-carnet">Chargement…</h1>
-    <p id="sous-titre-carnet"></p>
+    <h1 id="titre-evenement">Chargement…</h1>
+    <p id="sous-titre-evenement"></p>
   </header>
 
   <div class="carte" id="carte-description" hidden>
-    <p id="description-carnet"></p>
+    <p id="description-evenement"></p>
   </div>
 
   <div class="carte" id="carte-organisation" hidden>
@@ -31,22 +31,22 @@
     <p class="discret" id="organisation-contact"></p>
   </div>
 
-  <div class="carte">
+  <div class="carte" id="carte-lots" hidden>
     <h2>Lots à gagner</h2>
     <p id="message-pas-de-lots" class="discret" hidden>Aucun lot n'a encore été ajouté par l'organisateur.</p>
     <ul class="liste-lots" id="liste-lots"></ul>
   </div>
 
-  <div class="carte">
+  <div class="carte" id="carte-verification" hidden>
     <h2>Vérifier mon billet</h2>
     <p class="discret">Aucune information personnelle n'est demandée : seul le code compte.</p>
     <label for="champ-code">Code du billet</label>
-    <input type="text" id="champ-code" placeholder="Ex : A-00123" autocomplete="off" />
+    <input type="text" id="champ-code" placeholder="Ex : 00123" autocomplete="off" />
     <button type="button" id="bouton-verifier">Vérifier mon billet</button>
     <div id="message-verification" class="message" hidden></div>
   </div>
 
-  <p class="discret" style="text-align:center">
+  <p class="discret" style="text-align:center" id="texte-direct" hidden>
     Cette page se met à jour automatiquement pendant le tirage : inutile de la recharger.
   </p>
 </div>
@@ -54,50 +54,90 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="../assets/tombola.js"></script>
 <script>
-  const identifiant = identifiantCarnetDepuisUrl();
-  // Résolu une fois le carnet trouvé (par id ou par référence imprimée) :
-  // tout ce qui suit (RPC, direct) utilise toujours l'identifiant technique.
-  let carnetId = null;
-  const titreCarnet = document.getElementById("titre-carnet");
-  const sousTitreCarnet = document.getElementById("sous-titre-carnet");
+  const identifiant = identifiantEvenementDepuisUrl();
+  // Résolu une fois l'événement trouvé (directement par id, ou après avoir
+  // suivi le carnet physique correspondant à la référence publique) : tout
+  // ce qui suit (RPC, direct) utilise toujours cet identifiant technique.
+  let evenementId = null;
+
+  const titreEvenement = document.getElementById("titre-evenement");
+  const sousTitreEvenement = document.getElementById("sous-titre-evenement");
   const carteDescription = document.getElementById("carte-description");
-  const descriptionCarnet = document.getElementById("description-carnet");
+  const descriptionEvenement = document.getElementById("description-evenement");
+  const carteLots = document.getElementById("carte-lots");
   const listeLots = document.getElementById("liste-lots");
   const messagePasDeLots = document.getElementById("message-pas-de-lots");
   const carteOrganisation = document.getElementById("carte-organisation");
   const organisationNom = document.getElementById("organisation-nom");
   const organisationPresentation = document.getElementById("organisation-presentation");
   const organisationContact = document.getElementById("organisation-contact");
+  const carteVerification = document.getElementById("carte-verification");
   const champCode = document.getElementById("champ-code");
   const boutonVerifier = document.getElementById("bouton-verifier");
   const messageVerification = document.getElementById("message-verification");
+  const texteDirect = document.getElementById("texte-direct");
 
   if (!identifiant) {
-    titreCarnet.textContent = "Tombola introuvable";
-    sousTitreCarnet.textContent = "Le lien utilisé ne pointe vers aucune tombola.";
+    titreEvenement.textContent = "Tombola introuvable";
+    sousTitreEvenement.textContent = "Le lien utilisé ne pointe vers aucune tombola.";
+  }
+
+  // Résout l'identifiant technique de l'événement à partir de l'URL :
+  // directement s'il s'agit d'un lien organisateur (?id=...), ou en
+  // suivant d'abord le carnet physique correspondant si c'est un billet
+  // qui a été scanné (?ref=...) — un carnet pas encore activé n'a
+  // simplement pas d'événement rattaché pour l'instant.
+  async function resoudreEvenementId() {
+    if (identifiant.id) {
+      return { id: identifiant.id, pasEncoreActive: false };
+    }
+
+    const { data, error } = await supabaseClient.rpc("evenement_pour_carnet_physique", {
+      p_reference_publique: identifiant.ref,
+    });
+    const ligne = data && data[0];
+
+    if (error || !ligne) {
+      return { id: null, pasEncoreActive: false };
+    }
+    if (!ligne.evenement_id) {
+      return { id: null, pasEncoreActive: true };
+    }
+    return { id: ligne.evenement_id, pasEncoreActive: false };
   }
 
   async function chargerEnTete() {
-    // Passe toujours par la fonction RPC carnet_public, jamais par un
-    // SELECT direct sur la table : elle ne renvoie qu'un seul carnet,
-    // précisément identifié, jamais la liste de toutes les tombolas.
-    const { data: lignes, error } = await supabaseClient.rpc("carnet_public", {
-      p_id: identifiant.colonne === "id" ? identifiant.valeur : null,
-      p_reference: identifiant.colonne === "reference_imprimee" ? identifiant.valeur : null,
-    });
-    const data = lignes && lignes[0];
+    const { id, pasEncoreActive } = await resoudreEvenementId();
 
-    if (error || !data) {
-      titreCarnet.textContent = "Tombola introuvable";
-      sousTitreCarnet.textContent = "Vérifiez le lien fourni par l'organisateur.";
+    if (pasEncoreActive) {
+      titreEvenement.textContent = "Tombola pas encore configurée";
+      sousTitreEvenement.textContent = "L'organisateur n'a pas encore activé ce carnet. Revenez un peu plus tard.";
       return;
     }
 
-    carnetId = data.id;
-    titreCarnet.textContent = (data.logo || "🎟️") + " " + data.nom;
-    sousTitreCarnet.textContent = "Tirage : " + formaterDate(data.date_tirage);
+    if (!id) {
+      titreEvenement.textContent = "Tombola introuvable";
+      sousTitreEvenement.textContent = "Vérifiez le lien fourni par l'organisateur.";
+      return;
+    }
+
+    // Passe toujours par la fonction RPC evenement_public, jamais par un
+    // SELECT direct sur la table : elle ne renvoie qu'un seul événement,
+    // précisément identifié, jamais la liste de toutes les tombolas.
+    const { data: lignes, error } = await supabaseClient.rpc("evenement_public", { p_id: id });
+    const data = lignes && lignes[0];
+
+    if (error || !data) {
+      titreEvenement.textContent = "Tombola introuvable";
+      sousTitreEvenement.textContent = "Vérifiez le lien fourni par l'organisateur.";
+      return;
+    }
+
+    evenementId = data.id;
+    titreEvenement.textContent = (data.logo || "🎟️") + " " + data.nom;
+    sousTitreEvenement.textContent = "Tirage : " + formaterDate(data.date_tirage);
     if (data.description) {
-      descriptionCarnet.textContent = data.description;
+      descriptionEvenement.textContent = data.description;
       carteDescription.hidden = false;
     }
 
@@ -107,6 +147,10 @@
       organisationContact.textContent = data.organisation_contact || "";
       carteOrganisation.hidden = false;
     }
+
+    carteLots.hidden = false;
+    carteVerification.hidden = false;
+    texteDirect.hidden = false;
   }
 
   // Les résultats (lots + code gagnant une fois tiré) passent toujours par
@@ -114,7 +158,7 @@
   // billets, même côté page publique.
   async function chargerResultats() {
     const { data, error } = await supabaseClient.rpc("resultats_carnet", {
-      p_carnet_id: carnetId,
+      p_evenement_id: evenementId,
     });
 
     if (error || !data) return;
@@ -149,7 +193,7 @@
 
     boutonVerifier.disabled = true;
     const { data, error } = await supabaseClient.rpc("verifier_billet", {
-      p_carnet_id: carnetId,
+      p_evenement_id: evenementId,
       p_code: code,
     });
     boutonVerifier.disabled = false;
@@ -173,12 +217,12 @@
   // redemande les résultats complets via resultats_carnet, seule habilitée
   // à révéler le code du billet gagnant.
   function ecouterLeDirect() {
-    if (!carnetId) return;
+    if (!evenementId) return;
     supabaseClient
-      .channel("lots-carnet-" + carnetId)
+      .channel("lots-evenement-" + evenementId)
       .on(
         "postgres_changes",
-        { event: "UPDATE", schema: "public", table: "lots", filter: "carnet_id=eq." + carnetId },
+        { event: "UPDATE", schema: "public", table: "lots", filter: "evenement_id=eq." + evenementId },
         () => chargerResultats()
       )
       .subscribe();
@@ -187,7 +231,7 @@
   async function demarrer() {
     if (!identifiant) return;
     await chargerEnTete();
-    if (!carnetId) return;
+    if (!evenementId) return;
     chargerResultats();
     ecouterLeDirect();
   }

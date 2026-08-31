@@ -75,22 +75,18 @@ function construireCodesDepuisListe(texte) {
 }
 
 // ----------------------------------------------------------------------------
-// Retrouve un carnet depuis l'URL, soit par son identifiant technique
-// (?id=..., lien copié depuis l'espace organisateur), soit par la
-// référence imprimée sur un lot de billets (?ref=..., lien encodé dans le
-// QR code des billets, choisi avant même que le carnet existe).
+// Lit dans l'URL soit l'identifiant technique d'un événement (?id=...,
+// lien copié depuis l'espace organisateur), soit la référence publique
+// imprimée sur un billet (?ref=..., lien encodé dans le QR code de chaque
+// billet d'un carnet physique — choisie avant même qu'aucun événement
+// n'existe, donc résolue séparément).
 // ----------------------------------------------------------------------------
-function identifiantCarnetDepuisUrl() {
+function identifiantEvenementDepuisUrl() {
   const params = new URLSearchParams(window.location.search);
   const id = params.get("id");
-  if (id) {
-    return { colonne: "id", valeur: id };
-  }
   const ref = params.get("ref");
-  if (ref) {
-    return { colonne: "reference_imprimee", valeur: ref };
-  }
-  return null;
+  if (!id && !ref) return null;
+  return { id, ref };
 }
 
 function idCarnetDepuisUrl() {
