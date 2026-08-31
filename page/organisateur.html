@@ -164,10 +164,20 @@
           peut être activé qu'une seule fois, et seulement sur un événement à la fois.
         </p>
         <label for="champ-code-activation">Code d'activation du carnet</label>
-        <input type="text" id="champ-code-activation" placeholder="Code inscrit sur la couverture du carnet" />
+        <div class="barre-actions">
+          <input type="text" id="champ-code-activation" placeholder="Code inscrit sur la couverture du carnet" style="flex:1; min-width:180px" />
+          <button type="button" class="secondaire" id="bouton-scanner-qr" style="margin-top:0">📷 Scanner le QR</button>
+        </div>
         <button type="button" id="bouton-activer-carnet">Activer ce carnet</button>
         <div id="message-activation" class="message" hidden></div>
       </div>
+
+      <div class="superposition-scan" id="superposition-scan" hidden>
+        <p>Pointez la caméra vers le QR imprimé sur la couverture du carnet.</p>
+        <video id="video-scan" playsinline autoplay muted></video>
+        <button type="button" class="secondaire" id="bouton-annuler-scan">Annuler</button>
+      </div>
+      <canvas id="canevas-scan" hidden></canvas>
 
       <div class="carte">
         <h2>Lots à gagner</h2>
@@ -204,6 +214,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsqr/1.4.0/jsQR.js"></script>
 <script src="../assets/tombola.js"></script>
 <script>
   const carteConnexion = document.getElementById("carte-connexion");
@@ -250,6 +261,11 @@
   const champCodeActivation = document.getElementById("champ-code-activation");
   const boutonActiverCarnet = document.getElementById("bouton-activer-carnet");
   const messageActivation = document.getElementById("message-activation");
+  const boutonScannerQr = document.getElementById("bouton-scanner-qr");
+  const superpositionScan = document.getElementById("superposition-scan");
+  const videoScan = document.getElementById("video-scan");
+  const canevasScan = document.getElementById("canevas-scan");
+  const boutonAnnulerScan = document.getElementById("bouton-annuler-scan");
 
   const listeLotsOrganisateur = document.getElementById("liste-lots-organisateur");
   const nouveauLotNom = document.getElementById("nouveau-lot-nom");
@@ -572,6 +588,68 @@
     lien.href = source;
     lien.click();
   });
+
+  // ---------------------------------------------------------------------
+  // Scan du QR d'activation à la caméra (évite de recopier à la main le
+  // code, une longue chaîne peu pratique à taper).
+  // ---------------------------------------------------------------------
+
+  let fluxCameraScan = null;
+  let scanEnCours = false;
+
+  async function demarrerScanQr() {
+    if (typeof jsQR === "undefined") {
+      afficherMessage(messageActivation, "Le lecteur de QR code n'a pas pu se charger, entrez le code manuellement.", "erreur");
+      return;
+    }
+
+    try {
+      fluxCameraScan = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+    } catch (erreur) {
+      afficherMessage(messageActivation, "Impossible d'accéder à la caméra (autorisation refusée ou indisponible). Entrez le code manuellement.", "erreur");
+      return;
+    }
+
+    videoScan.srcObject = fluxCameraScan;
+    superpositionScan.hidden = false;
+    scanEnCours = true;
+    await videoScan.play();
+    requestAnimationFrame(analyserImageScan);
+  }
+
+  function arreterScanQr() {
+    scanEnCours = false;
+    superpositionScan.hidden = true;
+    if (fluxCameraScan) {
+      fluxCameraScan.getTracks().forEach((piste) => piste.stop());
+      fluxCameraScan = null;
+    }
+  }
+
+  function analyserImageScan() {
+    if (!scanEnCours) return;
+
+    if (videoScan.readyState === videoScan.HAVE_ENOUGH_DATA) {
+      canevasScan.width = videoScan.videoWidth;
+      canevasScan.height = videoScan.videoHeight;
+      const contexte = canevasScan.getContext("2d");
+      contexte.drawImage(videoScan, 0, 0, canevasScan.width, canevasScan.height);
+      const image = contexte.getImageData(0, 0, canevasScan.width, canevasScan.height);
+      const resultat = jsQR(image.data, image.width, image.height);
+
+      if (resultat && resultat.data) {
+        champCodeActivation.value = resultat.data.trim();
+        arreterScanQr();
+        afficherMessage(messageActivation, "Code détecté : vérifiez puis cliquez sur « Activer ce carnet ».", "succes");
+        return;
+      }
+    }
+
+    requestAnimationFrame(analyserImageScan);
+  }
+
+  boutonScannerQr.addEventListener("click", demarrerScanQr);
+  boutonAnnulerScan.addEventListener("click", arreterScanQr);
 
   // ---------------------------------------------------------------------
   // Activation d'un carnet de billets déjà imprimé

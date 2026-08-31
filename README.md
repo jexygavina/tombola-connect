@@ -159,16 +159,18 @@ créé).
    l'événement lui-même (nom, description, dates, infos d'organisation)
    peut être modifié à tout moment via « Modifier les informations de
    l'événement ».
-4. Activez chaque carnet physique que vous avez acheté : saisissez le code
-   d'activation imprimé sur sa couverture dans « Activer un carnet de
-   billets ». Tous les billets de ce carnet sont alors rattachés d'un coup à
-   votre événement — aucune saisie de code de billet un par un. Vous pouvez
-   activer plusieurs carnets sur le même événement si besoin. Un carnet déjà
-   activé (sur cet événement ou un autre) ne peut pas l'être une seconde
-   fois. Un billet abîmé, perdu ou déchiré avant le tirage ? Indiquez son
-   code dans « Exclure un billet du tirage » : il reste enregistré (un
-   acheteur peut toujours vérifier son code) mais ne pourra plus être tiré
-   au sort. Réintégrable à tout moment.
+4. Activez chaque carnet physique que vous avez acheté : dans « Activer un
+   carnet de billets », cliquez sur « 📷 Scanner le QR » et pointez la
+   caméra vers le QR imprimé sur la couverture du carnet (le code se
+   remplit tout seul), ou saisissez-le à la main si besoin. Tous les
+   billets de ce carnet sont alors rattachés d'un coup à votre événement —
+   aucune saisie de code de billet un par un. Vous pouvez activer plusieurs
+   carnets sur le même événement si besoin. Un carnet déjà activé (sur cet
+   événement ou un autre) ne peut pas l'être une seconde fois. Un billet
+   abîmé, perdu ou déchiré avant le tirage ? Indiquez son code dans
+   « Exclure un billet du tirage » : il reste enregistré (un acheteur peut
+   toujours vérifier son code) mais ne pourra plus être tiré au sort.
+   Réintégrable à tout moment.
 5. Partagez le lien public de l'événement (affiché dans l'espace
    organisateur) avec les acheteurs de billets. Les billets eux-mêmes
    portent déjà, imprimés par vos soins, le QR qui amène directement sur la
@@ -238,6 +240,12 @@ de l'association qui l'a acheté.
   physique est marqué utilisé dès la première activation réussie, sur
   n'importe quel événement. Impossible de rattacher deux fois le même
   carnet, même par erreur.
+- **Scan du QR d'activation à la caméra** : le bouton « 📷 Scanner le QR »
+  demande l'autorisation d'utiliser la caméra du navigateur, rien n'est
+  envoyé ni enregistré (l'image reste sur l'appareil, seul le code lu est
+  recopié dans le champ). Cela ne fonctionne que sur une page servie en
+  HTTPS (votre site une fois en ligne sur Vercel) ou en local via
+  `localhost` — jamais en ouvrant directement le fichier HTML.
 - **Deux QR codes distincts sur un carnet physique** : le QR des billets
   (public, un par numéro) et le QR d'activation (couverture, secret)
   portent des informations différentes, pour qu'un acheteur ne puisse

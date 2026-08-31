@@ -331,3 +331,30 @@ button.danger:hover {
   border-color: var(--couleur-accent);
   background: #eaf1fe;
 }
+
+.superposition-scan {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 22, 26, 0.85);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 20px;
+  z-index: 100;
+}
+
+.superposition-scan p {
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  max-width: 320px;
+}
+
+.superposition-scan video {
+  width: 100%;
+  max-width: 360px;
+  border-radius: var(--rayon);
+  background: #000;
+}
